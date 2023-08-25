@@ -8,7 +8,16 @@ pub fn request_link(url:&str) -> DynResult<String> {
 }
 
 
-/// Scrape ahrefs
+// Doc title:"Hello, world!"
+// Got to links
+// x content: Link to google 
+// x name: a
+// a: href, www.google.com
+// x content: Link to google num 2 
+// x name: a
+// a: href, www.google.com
+
+// /// Scrape ahrefs
 pub fn get_links() {
     use scraper::{Html,Selector};
 
