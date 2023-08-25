@@ -8,7 +8,7 @@ pub fn hi() {
 
 
 
-pub type AsyncResult =  Result<(), Box<dyn std::error::Error>>;
+pub type DynResult<T> =  Result<T, Box<dyn std::error::Error>>;
 
 
 // ------------------------
@@ -17,7 +17,7 @@ async fn test(n:usize) {
     println!("Test: {}", n);
 }
 
-pub async fn concurrent() -> AsyncResult {
+pub async fn concurrent() -> DynResult<()> {
     let t1 = tokio::spawn({
         test(10)
     });
@@ -35,7 +35,7 @@ pub async fn concurrent() -> AsyncResult {
     Ok(())
 }
 
-async fn req() -> AsyncResult {
+async fn req() -> DynResult<()> {
     let url = "https://www.google.com/";
 
     let resp = reqwest::get(url)
