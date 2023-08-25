@@ -1,3 +1,6 @@
+pub mod search;
+
+
 pub fn hi() {
     println!("Hi");
 }
@@ -5,10 +8,9 @@ pub fn hi() {
 
 
 
-
-
-
 pub type AsyncResult =  Result<(), Box<dyn std::error::Error>>;
+
+
 // ------------------------
 // Tokio learning
 async fn test(n:usize) {
