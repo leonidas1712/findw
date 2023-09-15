@@ -1,6 +1,7 @@
 use std::{collections::HashSet, fmt::Display};
 use anyhow::{anyhow, Result};
 use regex::Regex;
+use tokio::sync::mpsc;
 
 
 pub struct LinkNodeData {
@@ -115,6 +116,57 @@ pub struct Path {
     pub visited_hrefs: HashSet<String>
 }
 
+impl Path {
+    pub fn new(node:LinkNode)->Path {
+        let mut nodes:Vec<LinkNode> = vec![];
+        let mut visited_hrefs:HashSet<String> = HashSet::new();
+
+        visited_hrefs.insert(node.url.clone());
+        nodes.push(node);
+
+        Path {
+            nodes,
+            visited_hrefs
+        }
+    }
+}
+
+impl Display for Path {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let nodes_str:Vec<String> = self.nodes.iter().map(|n| n.to_string()).collect();
+        let nodes_str = nodes_str.join("=>");
+
+        write!(f, "{}", nodes_str)
+    }
+}
+
+/// Main search function. Stop when path length reaches limit (anything >= this ignore)
+pub async fn search(url:&str, pattern:&str, limit:usize)->Result<String> {
+    let init_node = LinkNode::linknode_from_url(url).await;
+    if init_node.is_err() {
+        return Err(anyhow!("Initial node with url {url} is invalid."));
+    }
+
+    let init_node = init_node.unwrap();
+    let init_path = Path::new(init_node);
+
+    let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
+
+    // send first path (task)
+    tokio::spawn(async move {
+        tx.send(init_path);
+    });
+
+    // main receiver (single consumer) in main thread
+        // Ext: Use MPMC here? broadcast
+    while let Some(path) = rx.recv().await {
+        println!("Path recv: {}", path);
+    }
+
+    // println!("{},{}", init_path.nodes.len(), init_path.visited_hrefs.len());
+
+    Ok(String::from("Search done"))
+}
 
 
 
@@ -129,9 +181,7 @@ pub struct Path {
 
 
 
-
-
-
+// ----------------------------
 // Doc title:"Hello, world!"
 // Got to links
 // x content: Link to google 
@@ -179,8 +229,4 @@ pub fn get_links() {
         attrs.for_each(|a| println!("a: {}, {}", a.0, a.1));
 
     });
-}
-
-pub fn search() {
-    println!("Searching");
 }
