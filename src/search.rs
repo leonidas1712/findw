@@ -1,31 +1,78 @@
 use std::{collections::HashSet, fmt::Display};
 use anyhow::Result;
 
+
+pub struct LinkNodeData {
+    pub title:String,
+    child_urls:Vec<String>
+}
+
+impl LinkNodeData {
+    // return a result from this
+    fn get_data_from_html(html:&str) {
+        // class specific to wiki (testing)
+        let title_selector = scraper::Selector::parse("title").unwrap();
+        let link_selector = scraper::Selector::parse("a:not(.interlanguage-link-target, .mw-jump-link)").unwrap();
+
+        let document = scraper::Html::parse_document(&html);
+
+        // document.title
+        let title = document.select(&title_selector).into_iter().next().unwrap().inner_html();
+        
+        // document.querySelectorAll(a:not[...])
+        let links = document.select(&link_selector);
+        let links:Vec<_> = links.collect();
+        println!("Links length:{}", links.len());
+
+        // 
+        let link = links.get(51).unwrap();
+        let val = link.value();
+        let attrs = val.attrs();
+        
+        for a in attrs {
+            println!("attr:{:?}", a);
+        }
+
+
+
+    }
+}
+
 /// Part of a given search Path
 pub struct LinkNode {
     pub url: String,
-    pub title:String,
-    pub html: String
+    pub data: LinkNodeData
+    // pub title:String,
+    // pub html: String // change to Vec<String> for Vec of child URLs
 }   
 
+
+
 impl LinkNode {
-    pub async fn linknode_from_url(url:&str)->Result<LinkNode> {
+    // Result<LinkNode>
+    pub async fn linknode_from_url(url:&str)->Result<()>{
         let html = reqwest::get(url)
         .await?
         .text()
         .await?;
 
-        Ok(LinkNode {
-            url:"url".to_string(),
-            title:"title".to_string(),
-            html:"html".to_string()
-        })
+        println!("Try getting data");
+        let data = LinkNodeData::get_data_from_html(&html);
+
+        // println!("HTML:{}", html);
+
+        // Ok(LinkNode {
+        //     url:"url".to_string(),
+        //     title:"title".to_string(),
+        //     html:"html".to_string()
+        // })
+        Ok(())
     }
 }
 
 impl Display for LinkNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {}, {})", self.url, self.title, self.html)
+        write!(f, "({}, {})", self.url, self.data.title)
     }
 }
 
