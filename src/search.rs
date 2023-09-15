@@ -1,11 +1,11 @@
 use std::{collections::HashSet, fmt::Display};
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use regex::Regex;
 
 
 pub struct LinkNodeData {
     pub title:String,
-    child_urls:Vec<String>
+    pub child_urls:Vec<String>
 }
 
 // https:// - return as is
@@ -33,9 +33,11 @@ pub fn expand_url(url:&str)->String {
 
 impl LinkNodeData {
     // return a result from this
-    fn get_data_from_html(html:&str) {
+    fn get_data_from_html(html:&str)->Result<LinkNodeData>{
         // class specific to wiki (testing)
         let title_selector = scraper::Selector::parse("title").unwrap();
+
+        // filtering some useless wiki classes
         let link_selector = scraper::Selector::parse("a:not(.interlanguage-link-target, .mw-jump-link)").unwrap();
 
         let document = scraper::Html::parse_document(&html);
@@ -49,29 +51,29 @@ impl LinkNodeData {
         println!("Links length:{}", links.len());
 
         // take the link, map to href -> expand href if needed
-        // let link = links.get(51).unwrap();
-        // let val = link.value();
-        // let attrs = val.attrs();
-        
-        // for a in attrs {
-        //     println!("attr:{:?}", a);
-        // }
-        let urls = links.into_iter().filter_map(|elem| {
+        let urls:Vec<String> = links.into_iter().filter_map(|elem| {
             let val = elem.value();
             let href = val.attr("href");
 
             // regex: https:// or /wiki/ 
                 // if /wiki/ - expand and return Some(expanded)
             if let Some(url) = href {
-                return Some(url); // todo expand 
+                return Some(expand_url(url)); // todo expand 
             } else {
+                // when it has no href attr
                 return None;
             }
 
-        });
+        }).collect();
 
+        if title.len() == 0 || urls.len() == 0 {
+            return Err(anyhow!("Empty link node data (title or urls)"))
+        }
 
-
+        Ok(LinkNodeData {
+            title,
+            child_urls:urls
+        })
     }
 }
 
@@ -79,8 +81,6 @@ impl LinkNodeData {
 pub struct LinkNode {
     pub url: String,
     pub data: LinkNodeData
-    // pub title:String,
-    // pub html: String // change to Vec<String> for Vec of child URLs
 }   
 
 
@@ -93,10 +93,8 @@ impl LinkNode {
         .text()
         .await?;
 
-        println!("Try getting data");
         let data = LinkNodeData::get_data_from_html(&html);
 
-        // println!("HTML:{}", html);
 
         // Ok(LinkNode {
         //     url:"url".to_string(),
