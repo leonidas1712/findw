@@ -1,7 +1,7 @@
 pub mod search;
 
 
-
+/// Result type around and dyn Error
 pub type DynResult<T> =  Result<T, Box<dyn std::error::Error>>;
 
 pub async fn req() -> DynResult<()> {

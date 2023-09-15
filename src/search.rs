@@ -10,12 +10,17 @@ pub struct LinkNode {
 }   
 
 impl LinkNode {
-    pub async fn linknode_from_url(url:&str)->LinkNode {
-        LinkNode {
+    pub async fn linknode_from_url(url:&str)->DynResult<LinkNode> {
+        let html = reqwest::get(url)
+        .await?
+        .text()
+        .await?;
+
+        Ok(LinkNode {
             url:"url".to_string(),
             title:"title".to_string(),
             html:"html".to_string()
-        }
+        })
     }
 }
 
