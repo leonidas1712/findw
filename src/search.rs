@@ -87,27 +87,24 @@ pub struct LinkNode {
 
 impl LinkNode {
     // Result<LinkNode>
-    pub async fn linknode_from_url(url:&str)->Result<()>{
+    pub async fn linknode_from_url(url:&str)->Result<LinkNode>{
         let html = reqwest::get(url)
         .await?
         .text()
         .await?;
 
-        let data = LinkNodeData::get_data_from_html(&html);
+        let data = LinkNodeData::get_data_from_html(&html)?;
 
-
-        // Ok(LinkNode {
-        //     url:"url".to_string(),
-        //     title:"title".to_string(),
-        //     html:"html".to_string()
-        // })
-        Ok(())
+        Ok(LinkNode {
+            url:url.to_string(),
+            data
+        })
     }
 }
 
 impl Display for LinkNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.url, self.data.title)
+        write!(f, "({}, {}, {} child links)", self.url, self.data.title, self.data.child_urls.len())
     }
 }
 
