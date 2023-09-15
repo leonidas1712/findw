@@ -1,9 +1,11 @@
 use std::{collections::HashSet, fmt::Display};
 use anyhow::{anyhow, Result};
 use regex::Regex;
+use scraper::node;
 use tokio::sync::mpsc;
 
 
+#[derive(Clone)]
 pub struct LinkNodeData {
     pub title:String,
     pub child_urls:Vec<String>
@@ -49,7 +51,7 @@ impl LinkNodeData {
         // document.querySelectorAll(a:not[...])
         let links = document.select(&link_selector);
         let links:Vec<_> = links.collect();
-        println!("Links length:{}", links.len());
+        // println!("Links length:{}", links.len());
 
         // take the link, map to href -> expand href if needed
         let urls:Vec<String> = links.into_iter().filter_map(|elem| {
@@ -79,6 +81,7 @@ impl LinkNodeData {
 }
 
 /// Part of a given search Path
+#[derive(Clone)]
 pub struct LinkNode {
     pub url: String,
     pub data: LinkNodeData
@@ -110,6 +113,7 @@ impl Display for LinkNode {
 }
 
 /// Search path along some given URLs - path list, visited set
+#[derive(Clone)]
 pub struct Path {
     pub nodes: Vec<LinkNode>,
     /// use hrefs to track visited
@@ -129,11 +133,16 @@ impl Path {
             visited_hrefs
         }
     }
+
+    pub fn add(&mut self, node:LinkNode) {
+        self.visited_hrefs.insert(node.url.clone());
+        self.nodes.push(node);
+    }
 }
 
 impl Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let nodes_str:Vec<String> = self.nodes.iter().map(|n| n.to_string()).collect();
+        let nodes_str:Vec<String> = self.nodes.iter().map(|n| n.data.title.to_string()).collect();
         let nodes_str = nodes_str.join("=>");
 
         write!(f, "{}", nodes_str)
@@ -152,15 +161,49 @@ pub async fn search(url:&str, pattern:&str, limit:usize)->Result<String> {
 
     let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
 
+    let first_tx = tx.clone();
     // send first path (task)
     tokio::spawn(async move {
-        tx.send(init_path);
+        first_tx.send(init_path);
     });
 
     // main receiver (single consumer) in main thread
-        // Ext: Use MPMC here? broadcast
+        // TODO: Use MPMC here? broadcast
     while let Some(path) = rx.recv().await {
-        println!("Path recv: {}", path);
+        // println!("Path recv: {}", path);
+        let most_recent = path.nodes.last().unwrap();
+
+        // goal test - TODO: replace with regex l8r
+        if most_recent.data.title.contains(pattern) {
+            let res = format!("{}", path.to_string());
+            println!("{res}"); // TODO: some kind of async output? instead of forcing buffer to flush immediately
+        }
+
+        let recent = most_recent.clone();
+
+        // for each child_url, make a new task to process
+        for child_url in recent.data.child_urls {
+            // request again linknode_from_url -> new link node (ignore err)
+            // clone curr path, add node
+            // send mpsc ?
+            let mut cloned_path = path.clone();
+            let cloned_tx = tx.clone();
+
+
+            tokio::spawn(async move {
+                // add children nodes to mpsc - spawn new tasks
+                let node_res = LinkNode::linknode_from_url(&child_url).await;
+                if let Ok(node) = node_res {
+                    cloned_path.add(node);
+                    cloned_tx.send(cloned_path);
+
+                }
+           });
+
+        };
+
+        // new task - e.g up to 600-1000 per url
+    
     }
 
     // println!("{},{}", init_path.nodes.len(), init_path.visited_hrefs.len());
