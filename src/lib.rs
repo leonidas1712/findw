@@ -1,10 +1,10 @@
 pub mod search;
 
 
-/// Result type around and dyn Error
-pub type DynResult<T> =  Result<T, Box<dyn std::error::Error>>;
 
-pub async fn req() -> DynResult<()> {
+
+
+pub async fn req() -> anyhow::Result<()> {
     let url = "https://www.google.com/";
 
     let resp = reqwest::get(url)

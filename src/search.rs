@@ -1,6 +1,5 @@
 use std::{collections::HashSet, fmt::Display};
-
-use crate::DynResult;
+use anyhow::Result;
 
 /// Part of a given search Path
 pub struct LinkNode {
@@ -10,7 +9,7 @@ pub struct LinkNode {
 }   
 
 impl LinkNode {
-    pub async fn linknode_from_url(url:&str)->DynResult<LinkNode> {
+    pub async fn linknode_from_url(url:&str)->Result<LinkNode> {
         let html = reqwest::get(url)
         .await?
         .text()
