@@ -1,11 +1,52 @@
+use std::{collections::HashSet, fmt::Display};
+
 use crate::DynResult;
 
-/// Request URL and get HTML string
-pub fn request_link(url:&str) -> DynResult<String> {
+/// Part of a given search Path
+pub struct LinkNode {
+    pub url: String,
+    pub title:String,
+    pub html: String
+}   
 
-    let res = String::from("Requested");
-    Ok(res)
+impl LinkNode {
+    pub async fn linknode_from_url(url:&str)->LinkNode {
+        LinkNode {
+            url:"url".to_string(),
+            title:"title".to_string(),
+            html:"html".to_string()
+        }
+    }
 }
+
+impl Display for LinkNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {}, {})", self.url, self.title, self.html)
+    }
+}
+
+/// Search path along some given URLs - path list, visited set
+pub struct Path {
+    pub nodes: Vec<LinkNode>,
+    /// use hrefs to track visited
+    pub visited_hrefs: HashSet<String>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Doc title:"Hello, world!"

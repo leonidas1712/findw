@@ -1,10 +1,14 @@
-use findw::{DynResult, concurrent};
-use findw::search::get_links;
+use findw::{DynResult, req, channel};
+use findw::search::{get_links, LinkNode};
 
 
 #[tokio::main]
 async fn main() -> DynResult<()> {
-    get_links();
+    // req().await;
+    // get_links();
+    // channel().await;
+    let node = LinkNode::linknode_from_url("url").await;
+    println!("{}", node);
 
     Ok(())
 }
