@@ -1,10 +1,34 @@
 use std::{collections::HashSet, fmt::Display};
 use anyhow::Result;
+use regex::Regex;
 
 
 pub struct LinkNodeData {
     pub title:String,
     child_urls:Vec<String>
+}
+
+// https:// - return as is
+// /wiki/ - expand
+pub fn expand_url(url:&str)->String {
+    let wiki = Regex::new(r"\/wiki\/(.*)").unwrap();
+    let mut captures_try = wiki.captures(url);
+    
+    // matches /wiki/: use to expand URL, captures[1] is the name
+    if let Some(captures) = captures_try {
+        let captures:Vec<_> = captures.iter().map(|e| e.unwrap().as_str()).collect();
+        if captures.len() >= 2 {
+            let url = "https://en.wikipedia.org/wiki/";
+            let name = captures.get(1).unwrap();
+            return url.to_owned()+name.to_owned();
+        }
+    
+        // for c in captures {
+        //     println!("Capt:{}", c);
+        // }
+    }
+
+    String::from(url)
 }
 
 impl LinkNodeData {
@@ -24,14 +48,27 @@ impl LinkNodeData {
         let links:Vec<_> = links.collect();
         println!("Links length:{}", links.len());
 
-        // 
-        let link = links.get(51).unwrap();
-        let val = link.value();
-        let attrs = val.attrs();
+        // take the link, map to href -> expand href if needed
+        // let link = links.get(51).unwrap();
+        // let val = link.value();
+        // let attrs = val.attrs();
         
-        for a in attrs {
-            println!("attr:{:?}", a);
-        }
+        // for a in attrs {
+        //     println!("attr:{:?}", a);
+        // }
+        let urls = links.into_iter().filter_map(|elem| {
+            let val = elem.value();
+            let href = val.attr("href");
+
+            // regex: https:// or /wiki/ 
+                // if /wiki/ - expand and return Some(expanded)
+            if let Some(url) = href {
+                return Some(url); // todo expand 
+            } else {
+                return None;
+            }
+
+        });
 
 
 
