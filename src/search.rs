@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
+use std::{collections::HashSet, fmt::{Display, format}};
 use anyhow::{anyhow, Result};
 use regex::Regex;
 use scraper::node;
@@ -7,7 +7,7 @@ use tokio::sync::mpsc;
 
 #[derive(Clone)]
 pub struct LinkNodeData {
-    pub title:String,
+    pub title:Option<String>,
     pub child_urls:Vec<String>
 }
 
@@ -44,14 +44,9 @@ impl LinkNodeData {
         let link_selector = scraper::Selector::parse("a:not(.interlanguage-link-target, .mw-jump-link)").unwrap();
 
         let document = scraper::Html::parse_document(&html);
-
-        // document.title TODO: fix this unwrap
-        let title = document.select(&title_selector).into_iter().next().unwrap().inner_html();
         
-        // document.querySelectorAll(a:not[...])
         let links = document.select(&link_selector);
         let links:Vec<_> = links.collect();
-        // println!("Links length:{}", links.len());
 
         // take the link, map to href -> expand href if needed
         let urls:Vec<String> = links.into_iter().filter_map(|elem| {
@@ -69,12 +64,29 @@ impl LinkNodeData {
 
         }).collect();
 
-        if title.len() == 0 || urls.len() == 0 {
-            return Err(anyhow!("Empty link node data (title or urls)"))
-        }
+        // document.title TODO: fix this unwrap
+        // let title = document.select(&title_selector).into_iter().next().unwrap().inner_html();
+
+        // into_iter because a selector can technically match many elems, but title tag we only look at first
+        let title_select = document.select(&title_selector).into_iter().next(); 
+        
+        let title = match title_select {
+            Some(elem) => elem.inner_html(),
+            None => String::from("(Empty title)")
+        };
+
+        // if title.len() == 0 || urls.len() == 0 {
+        //     return Err(anyhow!("Empty link node data (title or urls)"))
+        // }
+
+        let opt_title = if title.len() == 0 {
+            None
+        } else {
+            Some(title)
+        };
 
         Ok(LinkNodeData {
-            title,
+            title:opt_title,
             child_urls:urls
         })
     }
@@ -108,7 +120,13 @@ impl LinkNode {
 
 impl Display for LinkNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {}, {} child links)", self.url, self.data.title, self.data.child_urls.len())
+        let title_out:&str = match &self.data.title {
+            Some(title) => title.as_ref(),
+            None => "Empty Title"
+    
+        };
+
+        write!(f, "({}, {}, {} child links)", self.url, title_out, self.data.child_urls.len())
     }
 }
 
@@ -142,10 +160,19 @@ impl Path {
 
 impl Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let nodes_str:Vec<String> = self.nodes.iter().map(|n| n.data.title.to_string()).collect();
-        let nodes_str = nodes_str.join("=>");
+        let mut out_str:Vec<&str> = vec![];
 
-        write!(f, "{}", nodes_str)
+        for node in self.nodes.iter() {
+            let title = node.data.title.as_ref();
+            match title {
+                Some(s) => out_str.push(s),
+                None => out_str.push("Empty Title")
+            };
+        }
+
+        let output = out_str.join("=>");
+
+        write!(f, "{}", output)
     }
 }
 
@@ -175,7 +202,7 @@ pub async fn search(url:&str, pattern:&str, limit:usize)->Result<String> {
 
         // goal test - TODO: replace with regex l8r
         // move to per thread
-        if most_recent.data.title.contains(pattern) {
+        if most_recent.data.title.clone().map(|s| s.contains(pattern)).unwrap_or(false) {
             let res = format!("{}", path.to_string());
             println!("{res}"); // TODO: some kind of async output? instead of forcing buffer to flush immediately
         }
