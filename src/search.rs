@@ -45,7 +45,7 @@ impl LinkNodeData {
 
         let document = scraper::Html::parse_document(&html);
 
-        // document.title
+        // document.title TODO: fix this unwrap
         let title = document.select(&title_selector).into_iter().next().unwrap().inner_html();
         
         // document.querySelectorAll(a:not[...])
@@ -83,8 +83,8 @@ impl LinkNodeData {
 /// Part of a given search Path
 #[derive(Clone)]
 pub struct LinkNode {
-    pub url: String,
-    pub data: LinkNodeData
+    pub url: String, // full url
+    pub data: LinkNodeData // 
 }   
 
 
@@ -117,7 +117,7 @@ impl Display for LinkNode {
 pub struct Path {
     pub nodes: Vec<LinkNode>,
     /// use hrefs to track visited
-    pub visited_hrefs: HashSet<String>
+    pub visited_hrefs: HashSet<String> // TODO: check BTreeMap, or other alternatives
 }
 
 impl Path {
@@ -174,6 +174,7 @@ pub async fn search(url:&str, pattern:&str, limit:usize)->Result<String> {
         let most_recent = path.nodes.last().unwrap();
 
         // goal test - TODO: replace with regex l8r
+        // move to per thread
         if most_recent.data.title.contains(pattern) {
             let res = format!("{}", path.to_string());
             println!("{res}"); // TODO: some kind of async output? instead of forcing buffer to flush immediately
@@ -198,6 +199,8 @@ pub async fn search(url:&str, pattern:&str, limit:usize)->Result<String> {
                     cloned_tx.send(cloned_path);
 
                 }
+
+                // just pattern match (goal test) here, then only add children to queue
            });
 
         };

@@ -14,8 +14,9 @@ async fn main() -> anyhow::Result<()> {
     // let node = LinkNode::linknode_from_url(URL).await;
     // println!("{}", node.unwrap());
 
-    let URL = "https://en.wikipedia.org/wiki/Leonidas_I";
-    search(URL,"Sparta",2).await;
+    // let URL = "https://en.wikipedia.org/wiki/Leonidas_I";
+     let URL = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
+    search(URL,"Jane",2).await?;
 
     Ok(())
 }
