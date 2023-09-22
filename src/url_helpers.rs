@@ -17,7 +17,7 @@ impl ParsedUrl {
 pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
     let parsed = Url::parse(url);
     if parsed.is_err() {
-        return Err(anyhow!("Invalid url:{}", url))
+        return Err(anyhow!("Invalid url - {}", url))
     }
     
     let parsed = parsed.unwrap();
