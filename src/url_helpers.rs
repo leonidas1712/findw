@@ -66,7 +66,7 @@ impl ParsedUrl {
             return href;
         }).collect();
 
-        println!("LINKS: {:?}", links);
+        // println!("LINKS: {:?}", links);
 
         // into_iter because a selector can technically match many elems, but title tag we only look at first
         let title_select = document.select(&title_selector).into_iter().next(); 

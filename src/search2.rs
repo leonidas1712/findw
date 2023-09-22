@@ -31,6 +31,15 @@ impl Path {
         })
     }
 
+    pub fn new_from_data(depth:usize, path_array:Vec<String> , path_vis: HashSet<String>, parsed_url:ParsedUrl)->Path {
+        Path {
+            depth,
+            path_array,
+            path_vis,
+            parsed_url
+        }
+    }
+
     // join current path titles with newest
         // because we only get newest upon get req
     pub fn print_path(&self, latest_title:&str) -> String {
@@ -91,18 +100,19 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
         
 
         // cloned path for new task - Strat 1
-        let mut cloned_path = path.clone();
+        // let mut cloned_path = path.clone();
+        let cloned_tx = tx.clone();
         let cloned_pat = pattern.clone();
 
 
         tokio::spawn(async move {
             // BLOCKING WITHIN TASK: add children nodes to mpsc - spawn new tasks
                 // TODO: handle task failure properly
-            let get_info = cloned_path.parsed_url.get_info().await;
+            let get_info = path.parsed_url.get_info().await;
             
             match get_info {
                 Ok(info) => {
-                    println!("INFO: {}", info);
+                    // println!("INFO: {}", info);
 
 
                     // get title, hrefs
@@ -114,13 +124,13 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
                     // map to (title, bool) where bool=T means title meets goal test
                     let page_title_contains = page_title
-                        .map(|title| (title.clone(), title.contains(&cloned_pat)));
+                        .clone().map(|title| (title.clone(), title.contains(&cloned_pat)));
 
                     match page_title_contains {
                         Some(res) => {
                             // contains: print
-                            if(res.1) {
-                                let joined = cloned_path.print_path(&res.0);
+                            if res.1 {
+                                let joined = path.print_path(&res.0);
                                 println!("Found: '{}'", joined);
                             }
                         },
@@ -136,17 +146,37 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                     // add children
                     for child in child_hrefs {
                         // is_rel: diff logic
-                        if (is_relative(&child)) {
-                            let full_url = cloned_path.parsed_url.base.join(&child);
+                        if is_relative(&child) {
+                            let full_url = path.parsed_url.base.join(&child).unwrap();
+                            let full_url = full_url.to_string();
+                            let title = page_title.clone();
+
+                            // shadow outer: need to clone for each task
+                            let mut cloned_path = path.clone();
+
+
+                            // visited in curr path already - skip
+                            if !cloned_path.path_vis.contains(&full_url) {
+                                cloned_path.path_array.push(title.unwrap_or("Empty Title".to_string()));
+                                cloned_path.path_vis.insert(full_url);
+                                cloned_path.parsed_url.relative = child;
+                                cloned_path.depth += 1;
+
+                                cloned_tx.send(cloned_path);
+                            }
+
                             // check if full_url in vis set, skip if vis
                             // copy path array, append
                             // copy vis_set, add
                             // clone prev parsed_url and use
                             // depth+= 1
 
+
+                        // TODO
                         } else {
                             // make a new parsed_url
                             // same logic for copy path array + copy vis_set-
+                            let mut cloned_path = path.clone();
                         }
                         // cloned_path.depth+=1;
                     }
