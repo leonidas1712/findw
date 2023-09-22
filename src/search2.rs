@@ -6,16 +6,16 @@ use scraper::node;
 use tokio::sync::mpsc;
 use url::Url;
 
-use crate::url_helpers::{parse_base_url, ParsedUrl};
+use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 
 // TODO: Change to use &str where possible
 /// Represents a node in the MPSC queue: a search path
 #[derive(Clone)]
 struct Path {
-    depth:usize,
-    path_array: Vec<String>, // titles so far; TODO: modify to support grep on contents (need to store HTML content strings or objects)
-    path_vis: HashSet<String>, // for now, store full_url. TODO: how else can I use this with full/rel?
-    parsed_url:ParsedUrl // wraps around base Url and relative url String
+    pub depth:usize,
+    pub path_array: Vec<String>, // titles so far; TODO: modify to support grep on contents (need to store HTML content strings or objects)
+    pub path_vis: HashSet<String>, // for now, store full_url. TODO: how else can I use this with full/rel?
+    pub parsed_url:ParsedUrl // wraps around base Url and relative url String
 }
 
 impl Path {
@@ -29,6 +29,13 @@ impl Path {
             path_vis:HashSet::new(),
             parsed_url
         })
+    }
+
+    // join current path titles with newest
+        // because we only get newest upon get req
+    pub fn print_path(&self, latest_title:&str) -> String {
+        let joined = self.path_array.join(" => ");
+        joined + latest_title
     }
 }
 
@@ -62,7 +69,7 @@ impl Display for Path {
 // Improvements from Sep 15
 // Program stops when all tx go out of scope
     // Eventually children are no longer added so no more txs to clone - all dropped
-pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
+pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
     println!("Starting search with: {}\n", initial_path);
@@ -84,7 +91,8 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
         
 
         // cloned path for new task - Strat 1
-        let cloned_path = path.clone();
+        let mut cloned_path = path.clone();
+        let cloned_pat = pattern.clone();
 
 
         tokio::spawn(async move {
@@ -96,10 +104,62 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
                 Ok(info) => {
                     println!("INFO: {}", info);
 
+
+                    // get title, hrefs
+                    let page_title = info.page_title;
+                    let child_hrefs = info.child_hrefs;
+
+
+                    // GOAL TEST AND PRINT: right now just title.contains
+
+                    // map to (title, bool) where bool=T means title meets goal test
+                    let page_title_contains = page_title
+                        .map(|title| (title.clone(), title.contains(&cloned_pat)));
+
+                    match page_title_contains {
+                        Some(res) => {
+                            // contains: print
+                            if(res.1) {
+                                let joined = cloned_path.print_path(&res.0);
+                                println!("Found: '{}'", joined);
+                            }
+                        },
+                        None => ()
+                    }
+
                     // reached limit
                     if copied_depth + 1 > depth_limit  {
+                        println!("EXIT");
                         exit(0);
                     }
+
+                    // add children
+                    for child in child_hrefs {
+                        // is_rel: diff logic
+                        if (is_relative(&child)) {
+                            let full_url = cloned_path.parsed_url.base.join(&child);
+                            // check if full_url in vis set, skip if vis
+                            // copy path array, append
+                            // copy vis_set, add
+                            // clone prev parsed_url and use
+                            // depth+= 1
+
+                        } else {
+                            // make a new parsed_url
+                            // same logic for copy path array + copy vis_set
+                        }
+                        // cloned_path.depth+=1;
+                    }
+
+
+                    // match page_title {
+                    //     Some(title) => {
+                    //         if (title.contains(pattern)) {
+
+                    //         }
+                    //     },
+                    //     None => {}
+                    // }
 
                 },
                 Err(err) => {
