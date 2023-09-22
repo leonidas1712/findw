@@ -103,8 +103,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
         // parent depth, stop if +1 > limit
         let copied_depth = path.depth;
 
-        
-
         // cloned path for new task - Strat 1
         // let mut cloned_path = path.clone();
         let cloned_tx = tx.clone();
@@ -169,15 +167,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
                                 cloned_tx.send(cloned_path);
                             }
-
-                            // check if full_url in vis set, skip if vis
-                            // copy path array, append
-                            // copy vis_set, add
-                            // clone prev parsed_url and use
-                            // depth+= 1
-
-
-                        // TODO
                         } else {
                             // make a new parsed_url
                             // same logic for copy path array + copy vis_set-
@@ -207,17 +196,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         }
                         // cloned_path.depth+=1;
                     }
-
-
-                    // match page_title {
-                    //     Some(title) => {
-                    //         if (title.contains(pattern)) {
-
-                    //         }
-                    //     },
-                    //     None => {}
-                    // }
-
                 },
                 Err(err) => {
                     println!("ERROR: {}", err);
