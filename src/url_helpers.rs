@@ -47,7 +47,23 @@ pub fn debug_url(url:&str) {
 
 #[cfg(test)]
 pub mod tests {
+    use super::get_base_url;
+
+    #[test]
     pub fn test_get_base_url() {
-        
+        let local = "http://localhost:8000/index.html";
+        let res = get_base_url(local);
+        assert!(res.is_ok());
+
+        let res = res.unwrap();
+        assert_eq!("http://localhost:8000/", res.to_string());
+
+
+        let norm = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
+        let res = get_base_url(norm);
+        assert!(res.is_ok());
+
+        let res = res.unwrap();
+        assert_eq!("https://blog.janestreet.com/", res.to_string());
     }
 }
