@@ -13,7 +13,7 @@ struct Path {
     depth:usize,
     path_array: Vec<String>, // titles so far; TODO: modify to support grep on contents (need to store HTML content strings or objects)
     path_vis: HashSet<String>, // for now, store full_url. TODO: how else can I use this with full/rel?
-    parsed_url:ParsedUrl
+    parsed_url:ParsedUrl // wraps around base Url and relative url String
 }
 
 impl Path {
@@ -51,13 +51,21 @@ impl Display for Path {
     }
 }
 
+// get_info(full_url:&str) -> (child_hrefs:Vec<String>, page_title:Option<String>)
+    // 1. get req for full_url
+    // 2. parse HTML, get title and hrefs
+    // 3. return out
+    
+
 // Improvements from Sep 15
+// Program stops when all tx go out of scope
+    // Eventually children are no longer added so no more txs to clone - all dropped
 pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
     println!("Starting search with: {}\n", initial_path);
 
-    // for initial MPSC send
+    // for initial MPSC send - need other tx to clone for remaining workers
     let first_tx = tx.clone();
 
     // send first path (task)
@@ -66,6 +74,8 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
     });
 
     while let Some(path) = rx.recv().await {
+        println!("Full URL in main:{}", &path.parsed_url.get_full_url());
+
         // parent depth, stop if +1 > limit
         let copied_depth = path.depth; 
         if copied_depth + 1 > depth_limit {
@@ -75,7 +85,7 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
         let cloned_path = path.path_array.clone();
         let cloned_vis = path.path_vis.clone();
         let cloned_base = path.parsed_url.clone();
-        
+
 
         tokio::spawn(async move {
             // add children nodes to mpsc - spawn new tasks

@@ -1,8 +1,11 @@
+use std::vec;
+
 use url::{Url};
 use anyhow::{anyhow, Result};
 
 /// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
 /// and relative url: (base, relative)
+/// Provides helper method for full url and parsing
 pub struct ParsedUrl {
     // https://localhost:8000/ or https://blog.janestreet.com/
     pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
@@ -19,11 +22,34 @@ impl Clone for ParsedUrl {
     }
 }
 
+/// Return result from get_info
+// TODO: change to use &str where possible
+struct InfoResult {
+    child_hrefs: Vec<String>,
+    page_title:Option<String>
+}
+
 impl ParsedUrl {
     pub fn get_full_url(&self)->String {
         self.base.join(&self.relative).unwrap().to_string()
     }
+
+    // request full URL -> get child hrefs + document title
+    pub async fn get_info(&self)->Result<InfoResult>{
+        let url = self.get_full_url();
+        let html = reqwest::get(url)
+            .await?
+            .text()
+            .await?;
+
+
+        // ch
+        Ok(InfoResult { child_hrefs: vec![], page_title: Some("Title".to_string()) })
+
+    }
 }
+
+
 
 pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
     let parsed = Url::parse(url);
@@ -91,6 +117,9 @@ pub mod tests {
         let res = res.unwrap();
         assert_eq!("https://blog.janestreet.com/", res.base.to_string());
         assert_eq!("https://blog.janestreet.com/what-the-interns-have-wrought-2023/", res.get_full_url());
+
+        // rel. without or with / is fine
+        // println!("JOIN: {}", res.base.join("/about.html").unwrap().to_string());
     }
 
     #[test]
