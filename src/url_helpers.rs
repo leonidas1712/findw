@@ -4,8 +4,8 @@ use anyhow::{anyhow, Result};
 /// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
 /// and relative url: (base, relative)
 pub struct ParsedUrl {
-    pub base:Url, // TODO: change to use pointer to avoid .clone()
-    pub relative:String
+    pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
+    pub relative:String 
 }
 
 impl ParsedUrl {
@@ -81,5 +81,12 @@ pub mod tests {
         let res = res.unwrap();
         assert_eq!("https://blog.janestreet.com/", res.base.to_string());
         assert_eq!("https://blog.janestreet.com/what-the-interns-have-wrought-2023/", res.get_full_url());
+    }
+
+    #[test]
+    pub fn test_get_base_url_err() {
+        let url = "badurl";
+        let res = parse_base_url(url);
+        assert!(res.is_err());
     }
 }

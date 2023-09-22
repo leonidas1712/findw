@@ -11,8 +11,8 @@ use crate::url_helpers::parse_base_url;
 /// Represents a node in the MPSC queue: a search path
 struct Path {
     depth:usize,
-    path_array: Vec<String>,
-    path_vis: HashSet<String>,
+    path_array: Vec<String>, // titles so far; TODO: modify to support grep on contents (need to store HTML content strings or objects)
+    path_vis: HashSet<String>, // for now, store full_url. TODO: how else can I use this with full/rel?
     relative_url:String, // about.html or what-the-interns-have-wrought-2023
     base_url:Url // https://localhost:8000/ or https://blog.janestreet.com/
 }
@@ -30,4 +30,21 @@ impl Path {
             base_url: parsed.base
         })
     }
+}
+
+impl Display for Path {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let joined_arr:String = self.path_array.iter().map(|s| s.to_string()).collect();
+        let set_str:String = self.path_vis.iter().map(|s| s.to_string()).collect();
+
+    
+        write!(f, "(d: {}, path: {}, vis:{}, rel: {}, base: {})", self.depth, joined_arr, set_str, self.relative_url, self.base_url.to_string())
+    }
+}
+
+// Improvements from Sep 15
+pub async fn search2(url:&str, pattern:&str, limit:usize)->Result<()> {
+    let initial_path = Path::new(url)?;
+    println!("Initial:{}", initial_path.to_string());
+    Ok(())
 }
