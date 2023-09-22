@@ -19,7 +19,7 @@ struct Path {
 
 impl Path {
     /// Create new path from given URL
-    fn new(url:&str)->Result<Path> {
+    pub fn new(url:&str)->Result<Path> {
         let parsed = parse_base_url(url)?;
 
         Ok(Path {
@@ -54,10 +54,38 @@ impl Display for Path {
 }
 
 // Improvements from Sep 15
-pub async fn search2(url:&str, pattern:&str, limit:usize)->Result<()> {
+pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
-    // println!("Initial:{}", initial_path.to_string());
+    let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
+    println!("Starting search with: {}\n", initial_path);
 
-    
+    // for initial MPSC send
+    let first_tx = tx.clone();
+
+    // send first path (task)
+    tokio::spawn(async move {
+        first_tx.send(initial_path);
+    });
+
+    while let Some(path) = rx.recv().await {
+        // parent depth, stop if +1 > limit
+        let copied_depth = path.depth; 
+        if copied_depth + 1 > depth_limit {
+            continue;
+        }
+
+        let cloned_path = path.path_array.clone();
+        let cloned_vis = path.path_vis.clone();
+        let cloned_base = path.base_url.clone();
+        
+
+        tokio::spawn(async move {
+            // add children nodes to mpsc - spawn new tasks
+           
+
+            // just pattern match (goal test) here, then only add children to queue
+       });
+    }
+
     Ok(())
 }

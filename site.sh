@@ -11,6 +11,7 @@ echo "Started test_site2 at $PORT2"
 
 echo "Started, waiting for SIGINT"
 
+# TODO: do a more specific way to kill
 catch_int() {
     echo "Caught int or term, stopping";
     kill $(pgrep python3) # kill procs started w python3
