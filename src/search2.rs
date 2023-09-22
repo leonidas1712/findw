@@ -43,8 +43,14 @@ impl Path {
     // join current path titles with newest
         // because we only get newest upon get req
     pub fn print_path(&self, latest_title:&str) -> String {
+    
         let joined = self.path_array.join(" => ");
-        joined + latest_title
+
+        if joined.is_empty() {
+            latest_title.to_string()
+        } else {
+            joined + " => " + latest_title
+        }
     }
 }
 
@@ -92,7 +98,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     });
 
     while let Some(path) = rx.recv().await {
-        println!("Full URL in main:{}", &path.parsed_url.get_full_url());
+        // println!("Full URL in main:{}", &path.parsed_url.get_full_url());
 
         // parent depth, stop if +1 > limit
         let copied_depth = path.depth;
@@ -137,10 +143,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         None => ()
                     }
 
-                    // reached limit
+                    // reached limit - just stop
                     if copied_depth + 1 > depth_limit  {
-                        println!("EXIT");
-                        exit(0);
+                        return;
                     }
 
                     // add children
@@ -177,6 +182,28 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             // make a new parsed_url
                             // same logic for copy path array + copy vis_set-
                             let mut cloned_path = path.clone();
+                            let full_url = child;
+                            let title = page_title.clone();
+
+
+                            if !cloned_path.path_vis.contains(&full_url) {
+                                cloned_path.path_array.push(title.unwrap_or("Empty Title".to_string()));
+                                cloned_path.path_vis.insert(full_url.clone());
+
+                                // new parsedurl
+                                let parsed_url = parse_base_url(&full_url);
+
+                                // if err ignore
+                                match parsed_url {
+                                    Ok(url) => {
+                                        cloned_path.parsed_url = url;
+                                        cloned_path.depth += 1;
+                                        cloned_tx.send(cloned_path);
+
+                                    },
+                                    _ => ()
+                                }
+                            }
                         }
                         // cloned_path.depth+=1;
                     }
