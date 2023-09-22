@@ -4,8 +4,19 @@ use anyhow::{anyhow, Result};
 /// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
 /// and relative url: (base, relative)
 pub struct ParsedUrl {
+    // https://localhost:8000/ or https://blog.janestreet.com/
     pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
-    pub relative:String 
+    /// about.html or what-the-interns-have-wrought-2023
+    pub relative:String  
+}
+
+impl Clone for ParsedUrl {
+    fn clone(&self) -> Self {
+        ParsedUrl {
+            base: self.base.clone(),
+            relative: self.relative.clone()
+        }
+    }
 }
 
 impl ParsedUrl {
