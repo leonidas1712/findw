@@ -56,6 +56,8 @@ impl Display for Path {
 // Improvements from Sep 15
 pub async fn search2(url:&str, pattern:&str, limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
-    println!("Initial:{}", initial_path.to_string());
+    // println!("Initial:{}", initial_path.to_string());
+
+    
     Ok(())
 }
