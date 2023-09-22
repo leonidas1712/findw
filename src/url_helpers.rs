@@ -1,8 +1,14 @@
 use url::{Url};
 use anyhow::{anyhow, Result};
 
-/// Get base e.g http://localhost:8000/index.html => http://localhost:8000
-pub fn get_base_url(url:&str)->Result<Url> {
+/// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
+/// and relative url: (base, relative)
+pub struct ParsedUrl {
+    pub base:Url,
+    pub relative:String
+}
+
+pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
     let parsed = Url::parse(url);
     if parsed.is_err() {
         return Err(anyhow!("Invalid url:{}", url))
@@ -18,6 +24,7 @@ pub fn get_base_url(url:&str)->Result<Url> {
     let scheme = parsed.scheme(); // http or https
     let domain = domain.unwrap(); // localhost or blog.janestreet.com
     let port = parsed.port(); // 8000
+    let relative = parsed.path();
 
     // make into the right string
     let base_url = match port {
@@ -32,7 +39,7 @@ pub fn get_base_url(url:&str)->Result<Url> {
     
     // parse back into Url
     let base_url = Url::parse(&base_url)?;
-    Ok(base_url)
+    Ok(ParsedUrl { base: base_url, relative: relative.to_string()})
 }
 
 pub fn debug_url(url:&str) {
@@ -47,23 +54,23 @@ pub fn debug_url(url:&str) {
 
 #[cfg(test)]
 pub mod tests {
-    use super::get_base_url;
+    use super::parse_base_url;
 
     #[test]
     pub fn test_get_base_url() {
         let local = "http://localhost:8000/index.html";
-        let res = get_base_url(local);
+        let res = parse_base_url(local);
         assert!(res.is_ok());
 
         let res = res.unwrap();
-        assert_eq!("http://localhost:8000/", res.to_string());
+        assert_eq!("http://localhost:8000/", res.base.to_string());
 
 
         let norm = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
-        let res = get_base_url(norm);
+        let res = parse_base_url(norm);
         assert!(res.is_ok());
 
         let res = res.unwrap();
-        assert_eq!("https://blog.janestreet.com/", res.to_string());
+        assert_eq!("https://blog.janestreet.com/", res.base.to_string());
     }
 }

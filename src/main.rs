@@ -7,11 +7,9 @@ use findw::url_helpers::debug_url;
 async fn main() -> anyhow::Result<()> {
     println!("MAIN");
     let URL = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
-    let test_url = "http://localhost:8000/index.html";
+    let LOCAL_URL = "http://localhost:8000/index.html";
 
-    debug_url(URL);
-    debug_url(test_url);
-
+    debug_url(LOCAL_URL);
 
     // search(URL,"Jane",2).await?;
 
