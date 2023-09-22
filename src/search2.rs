@@ -37,6 +37,17 @@ impl Display for Path {
         let joined_arr:String = self.path_array.iter().map(|s| s.to_string()).collect();
         let set_str:String = self.path_vis.iter().map(|s| s.to_string()).collect();
 
+        let joined_arr = if joined_arr.len() == 0 {
+            String::from("[]")
+        } else {
+            joined_arr
+        };
+
+        let set_str = if set_str.len() == 0 {
+            String::from("{}")
+        } else {
+            set_str
+        };
     
         write!(f, "(d: {}, path: {}, vis:{}, rel: {}, base: {})", self.depth, joined_arr, set_str, self.relative_url, self.base_url.to_string())
     }

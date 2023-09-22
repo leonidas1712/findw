@@ -73,7 +73,6 @@ pub mod tests {
         assert_eq!("http://localhost:8000/index.html", res.get_full_url());
 
 
-
         let norm = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
         let res = parse_base_url(norm);
         assert!(res.is_ok());

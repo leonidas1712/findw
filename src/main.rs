@@ -1,6 +1,4 @@
-use findw::{req, channel};
-use findw::search::{get_links, LinkNode, expand_url, search};
-use url::{Url};
+use findw::search2::search2;
 use findw::url_helpers::debug_url;
 
 #[tokio::main]
@@ -11,7 +9,7 @@ async fn main() -> anyhow::Result<()> {
 
     debug_url(LOCAL_URL);
 
-    // search(URL,"Jane",2).await?;
+    search2(LOCAL_URL,"title",1).await?;
 
     Ok(())
 }
