@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::{Display, format}};
+use std::{collections::HashSet, fmt::{Display, format, Debug}};
 use anyhow::{anyhow, Result};
 use regex::Regex;
 use scraper::node;
@@ -65,14 +65,15 @@ impl LinkNodeData {
         }).collect();
 
         // document.title TODO: fix this unwrap
-        // let title = document.select(&title_selector).into_iter().next().unwrap().inner_html();
-
         // into_iter because a selector can technically match many elems, but title tag we only look at first
         let title_select = document.select(&title_selector).into_iter().next(); 
         
         let title = match title_select {
             Some(elem) => elem.inner_html(),
-            None => String::from("(Empty title)")
+            None => { 
+                // println!("EMPTY");
+                String::from("(Empty title)") 
+            }
         };
 
         // if title.len() == 0 || urls.len() == 0 {
@@ -118,7 +119,7 @@ impl LinkNode {
     }
 }
 
-impl Display for LinkNode {
+impl Debug for LinkNode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let title_out:&str = match &self.data.title {
             Some(title) => title.as_ref(),
@@ -127,6 +128,18 @@ impl Display for LinkNode {
         };
 
         write!(f, "({}, {}, {} child links)", self.url, title_out, self.data.child_urls.len())
+    }
+}
+
+impl Display for LinkNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let title = self.data.title.as_ref();
+        let title = match title {
+            Some(s) => s,
+            None => "Empty Title"
+        };
+
+        write!(f, "{}", title)
     }
 }
 
@@ -158,19 +171,17 @@ impl Path {
     }
 }
 
+// Join title strings
 impl Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut out_str:Vec<&str> = vec![];
+        let mut out_str:Vec<String> = vec![];
 
         for node in self.nodes.iter() {
-            let title = node.data.title.as_ref();
-            match title {
-                Some(s) => out_str.push(s),
-                None => out_str.push("Empty Title")
-            };
+            let title = node.to_string();
+            out_str.push(title);
         }
 
-        let output = out_str.join("=>");
+        let output = out_str.join(" => ");
 
         write!(f, "{}", output)
     }
