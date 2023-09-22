@@ -35,6 +35,7 @@ impl ParsedUrl {
     }
 
     // request full URL -> get child hrefs + document title
+    // TODO: add individual tests for this
     pub async fn get_info(&self)->Result<InfoResult>{
         // TODO: Can't do const with runtime type - use thread_local?
         let title_selector = scraper::Selector::parse("title").unwrap();

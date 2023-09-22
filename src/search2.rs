@@ -9,6 +9,7 @@ use crate::url_helpers::{parse_base_url, ParsedUrl};
 
 // TODO: Change to use &str where possible
 /// Represents a node in the MPSC queue: a search path
+#[derive(Clone)]
 struct Path {
     depth:usize,
     path_array: Vec<String>, // titles so far; TODO: modify to support grep on contents (need to store HTML content strings or objects)
@@ -55,7 +56,7 @@ impl Display for Path {
     // 1. get req for full_url
     // 2. parse HTML, get title and hrefs
     // 3. return out
-    
+
 
 // Improvements from Sep 15
 // Program stops when all tx go out of scope
@@ -89,7 +90,7 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
 
         tokio::spawn(async move {
             // add children nodes to mpsc - spawn new tasks
-           
+            
 
             // just pattern match (goal test) here, then only add children to queue
        });
