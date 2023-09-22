@@ -1,4 +1,5 @@
 pub mod search;
+pub mod search2;
 pub mod url_helpers;
 
 pub async fn req() -> anyhow::Result<()> {
