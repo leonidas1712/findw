@@ -146,7 +146,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
                         } else {
                             // make a new parsed_url
-                            // same logic for copy path array + copy vis_set
+                            // same logic for copy path array + copy vis_set-
                         }
                         // cloned_path.depth+=1;
                     }
