@@ -1,6 +1,7 @@
 pub mod search;
 pub mod search2;
 pub mod url_helpers;
+pub mod consts;
 
 pub async fn req() -> anyhow::Result<()> {
     let url = "https://www.google.com/";

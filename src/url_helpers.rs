@@ -1,5 +1,4 @@
 use std::{vec, fmt::Display};
-
 use url::{Url};
 use anyhow::{anyhow, Result};
 
@@ -130,6 +129,12 @@ pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
     Ok(ParsedUrl { base: base_url, relative: relative.to_string()})
 }
 
+/// Return true if URL is relative, else false
+// TODO: make this more robust
+pub fn is_relative(url:&str)->bool {
+    url.starts_with("http://") || url.starts_with("https://")
+}
+
 pub fn debug_url(url:&str) {
     let parsed = Url::parse(url).unwrap();
     
@@ -142,6 +147,7 @@ pub fn debug_url(url:&str) {
 
 #[cfg(test)]
 pub mod tests {
+    use crate::{url_helpers::is_relative};
     use super::parse_base_url;
 
     #[test]
@@ -172,5 +178,10 @@ pub mod tests {
         let url = "badurl";
         let res = parse_base_url(url);
         assert!(res.is_err());
+    }
+
+    #[test]
+    pub fn test_is_relative() {
+        assert_eq!(is_relative("4234"), false);
     }
 }

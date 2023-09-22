@@ -1,10 +1,7 @@
-use findw::search2::search2;
+use findw::{search2::search2, consts};
 use anyhow::{anyhow, Result};
 
-const URL:&'static str = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
-const LOCAL_URL:&'static str = "http://localhost:8000/index.html";
-const BAD_URL:&'static str = "badurl";
-const USAGE:&'static str = "usage - findw URL PATTERN DEPTHLIMIT";
+
 
 // cargo r -- http://localhost:8000/index.html title 0
 
@@ -34,7 +31,7 @@ fn parse_args(args:Vec<String>)->Result<CliArgs> {
 async fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 4 {
-        return Err(anyhow!(USAGE))
+        return Err(anyhow!(consts::USAGE))
     }
 
     let args = parse_args(args)?;
