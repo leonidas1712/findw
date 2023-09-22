@@ -90,7 +90,6 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
         tokio::spawn(async move {
             // BLOCKING WITHIN TASK: add children nodes to mpsc - spawn new tasks
                 // TODO: handle task failure properly
-            println!("SPAWN");
             let get_info = cloned_path.parsed_url.get_info().await;
             
             match get_info {

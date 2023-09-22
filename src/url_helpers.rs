@@ -32,7 +32,7 @@ pub struct InfoResult {
 impl Display for InfoResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let empty = "EMPTY TITLE".to_string();
-        write!(f, "(title: {}, children: {:?})", self.page_title.as_ref().unwrap_or(&empty), self.child_hrefs)
+        write!(f, "(title: '{}', children: {:?})", self.page_title.as_ref().unwrap_or(&empty), self.child_hrefs)
     }
 }
 
