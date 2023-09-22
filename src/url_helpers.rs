@@ -132,7 +132,7 @@ pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
 /// Return true if URL is relative, else false
 // TODO: make this more robust
 pub fn is_relative(url:&str)->bool {
-    url.starts_with("http://") || url.starts_with("https://")
+    !(url.starts_with("http://") || url.starts_with("https://"))
 }
 
 pub fn debug_url(url:&str) {
@@ -182,6 +182,9 @@ pub mod tests {
 
     #[test]
     pub fn test_is_relative() {
-        assert_eq!(is_relative("4234"), false);
+        assert_eq!(is_relative("http://localhost:8000/info.html"), false);
+        assert_eq!(is_relative("https://blog.janestreet.com/what-the-interns-have-wrought-2023/"), false);
+        assert_eq!(is_relative("info.html"), true);
+        assert_eq!(is_relative("/info.html"), true);
     }
 }
