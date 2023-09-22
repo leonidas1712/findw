@@ -1,4 +1,4 @@
-use std::vec;
+use std::{vec, fmt::Display};
 
 use url::{Url};
 use anyhow::{anyhow, Result};
@@ -27,6 +27,13 @@ impl Clone for ParsedUrl {
 pub struct InfoResult {
     pub child_hrefs: Vec<String>,
     pub page_title:Option<String>
+}
+
+impl Display for InfoResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let empty = "EMPTY TITLE".to_string();
+        write!(f, "(title: {}, children: {:?})", self.page_title.as_ref().unwrap_or(&empty), self.child_hrefs)
+    }
 }
 
 impl ParsedUrl {

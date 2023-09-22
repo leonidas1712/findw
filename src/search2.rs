@@ -1,6 +1,7 @@
-use std::{collections::HashSet, fmt::{Display, format, Debug}, vec};
+use std::{collections::HashSet, fmt::{Display, format, Debug}, vec, process::exit};
 use anyhow::{anyhow, Result};
 use regex::Regex;
+use reqwest::get;
 use scraper::node;
 use tokio::sync::mpsc;
 use url::Url;
@@ -78,19 +79,34 @@ pub async fn search2(url:&str, pattern:&str, depth_limit:usize)->Result<()> {
         println!("Full URL in main:{}", &path.parsed_url.get_full_url());
 
         // parent depth, stop if +1 > limit
-        let copied_depth = path.depth; 
-        if copied_depth + 1 > depth_limit {
-            continue;
-        }
+        let copied_depth = path.depth;
 
-        let cloned_path = path.path_array.clone();
-        let cloned_vis = path.path_vis.clone();
-        let cloned_base = path.parsed_url.clone();
+        
+
+        // cloned path for new task - Strat 1
+        let cloned_path = path.clone();
 
 
         tokio::spawn(async move {
-            // add children nodes to mpsc - spawn new tasks
+            // BLOCKING WITHIN TASK: add children nodes to mpsc - spawn new tasks
+                // TODO: handle task failure properly
+            println!("SPAWN");
+            let get_info = cloned_path.parsed_url.get_info().await;
             
+            match get_info {
+                Ok(info) => {
+                    println!("INFO: {}", info);
+
+                    // reached limit
+                    if copied_depth + 1 > depth_limit  {
+                        exit(0);
+                    }
+
+                },
+                Err(err) => {
+                    println!("ERROR: {}", err);
+                }
+            }
 
             // just pattern match (goal test) here, then only add children to queue
        });
