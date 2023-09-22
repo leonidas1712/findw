@@ -11,9 +11,9 @@ const USAGE:&'static str = "usage - findw URL PATTERN DEPTHLIMIT";
 // TODO: replace with clap once args get more complex
 #[derive(Debug)]
 struct CliArgs {
-    url:String,
-    pattern:String,
-    depth_limit:usize
+    pub url:String,
+    pub pattern:String,
+    pub depth_limit:usize
 }
 
 /// Assumption: length = 3
@@ -40,6 +40,6 @@ async fn main() -> anyhow::Result<()> {
     let args = parse_args(args)?;
     println!("{:?}", args);
 
-    search2(LOCAL_URL,"title",1).await
+    search2(&args.url,&args.pattern, args.depth_limit).await
 }
 
