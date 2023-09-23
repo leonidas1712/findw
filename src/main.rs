@@ -1,8 +1,6 @@
 use findw::{search2::search2, consts};
 use anyhow::{anyhow, Result};
 
-
-
 // cargo r -- http://localhost:8000/index.html title 0
 
 // TODO: replace with clap once args get more complex
