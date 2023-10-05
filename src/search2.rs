@@ -1,7 +1,13 @@
-use std::{collections::HashSet, fmt::{Display}};
+use std::{collections::HashSet, fmt::{Display}, sync::{Arc,Mutex}};
 use anyhow::{Result};
 use tokio::sync::mpsc;
 use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
+
+/// Message from tx -> rx
+enum Message {
+    PathRcv(Path),
+    Close
+}
 
 // TODO: Change to use &str where possible, change path_vis to contain just string hashes and cmp on that (perf opt?)
 /// Represents a node in the MPSC queue: a search path
@@ -134,12 +140,16 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
         first_tx.send(initial_path);
     });
 
+    // sync last level threads: when it reaches 0, rx.close()
+    let sync:Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
+
     while let Some(path) = rx.recv().await {
         println!("PATH_RECV: {}", path.to_string());
 
         // without clone, pattern is moved in each iter so can't use again
             // TODO: fix by using Rc
         let cloned_pattern = pattern.clone();
+        let sync = Arc::clone(&sync); // shadow
 
         tokio::spawn(async move {
             let most_recent_url = path.get_most_recent_url(); // most recent url added to path
@@ -153,11 +163,28 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
                     // goal test, print path out if ok
                     path.goal_test_on_title(page_title, &cloned_pattern);
-
-                    // return out if children are above depth_limit
-                    if path.depth + 1 > depth_limit {
-                        return;
+                    
+                    let curr_depth = path.depth;
+                
+                    // spawn children here
+                    if curr_depth < depth_limit {
+                        // if child_depth == limit: sync++
                     }
+                    
+
+                    // done spawning
+                    
+                    // reached depth_limit: sync--, then check if 0 => rx.close
+                    if curr_depth == depth_limit {
+                        let mut sync_num = sync.lock().unwrap();
+                        *sync_num -= 1;
+
+                        // no more last level threads left
+                        if *sync_num == 0 {
+                            rx.close();
+                        }
+                    }
+
 
 
                 },
@@ -172,7 +199,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
         // rx.close();
     }
-
 
     Ok(())
 }
