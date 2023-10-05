@@ -77,11 +77,11 @@ impl Path {
     }
 
     /// Perform goal test on path given title Option. If passes, print concatenated path.
-    pub fn goal_test_on_title(&self, title:Option<String>, pattern:String) {
+    pub fn goal_test_on_title(&self, title:Option<String>, pattern:&str) {
         match title {
             Some(title_string) => {
                 // goal test passed
-                if title_string.contains(&pattern) {
+                if title_string.contains(pattern) {
                     let to_print = self.print_path(&title_string);
                     println!("Found: {}", to_print);
                 }
@@ -137,6 +137,10 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     while let Some(path) = rx.recv().await {
         println!("PATH_RECV: {}", path.to_string());
 
+        // without clone, pattern is moved in each iter so can't use again
+            // TODO: fix by using Rc
+        let cloned_pattern = pattern.clone();
+
         tokio::spawn(async move {
             let most_recent_url = path.get_most_recent_url(); // most recent url added to path
             // network request -> all child hrefs, page_title (Option since may not exist)
@@ -146,7 +150,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                 Ok(info) => {
                     let page_title = info.page_title;
                     let child_hrefs = info.child_hrefs;
-                    // path.goal_test_on_title(title, pattern)
+                    path.goal_test_on_title(page_title, &cloned_pattern);
                 },
                 
                 // handle error. e.g bad url
