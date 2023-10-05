@@ -33,8 +33,6 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let args = parse_args(args)?;
-    println!("{:?}", args);
-
     search2(&args.url,args.pattern, args.depth_limit).await
 }
 

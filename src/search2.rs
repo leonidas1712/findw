@@ -120,6 +120,10 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
         first_tx.send(initial_path);
     });
 
+    while let Some(path) = rx.recv().await {
+        println!("PATH_RECV: {}", path.to_string());
+    }
+
 
     Ok(())
 }
