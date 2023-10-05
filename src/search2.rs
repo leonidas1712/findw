@@ -115,7 +115,7 @@ impl Display for Path {
             format!("[{}]", set_str.join(", "))
         };
     
-        write!(f, "(d: {}, path: {}, vis:{}, latest_url:{})", self.depth, joined_arr, set_str, self.latest_url.to_string())
+        write!(f, "(depth: {}, path: {}, vis:{}, latest_url:{})", self.depth, joined_arr, set_str, self.latest_url.to_string())
     }
 }
 
