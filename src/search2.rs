@@ -174,7 +174,17 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             if curr_depth < depth_limit {
                                 // if child_depth == limit: sync++
                                 for child in child_hrefs {
+                                    // if parse fails on absolute -> None: unwrap_or = true -> loop will skip
+                                    let is_visited = most_recent_url
+                                    .get_new_parsed_url(child)
+                                    .ok()
+                                    .map(|url| path.is_visited(&url)).unwrap_or(true);
 
+                                    if is_visited {
+                                        continue;
+                                    }
+
+                                    
                                 }
                             }
                             
