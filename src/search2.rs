@@ -188,7 +188,21 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                                     // make a new path and add to queue, increase sync for leaf (depth == limit)
                                     match get_new_parsed {
                                         Some(url) => {
+                                            let new_title = page_title.clone();
+                                            let new_path = path.add_info(url, new_title);
 
+                                            // add to queue, sync++ if leaf and send was successful
+                                            match tx.send(PathRcv(new_path)) {
+                                                Ok(_) => {
+                                                    if curr_depth + 1 == depth_limit {
+                                                        let mut sync_num = sync.lock().unwrap();
+                                                        *sync_num += 1;
+                                                    }
+                                                },
+                                                Err(err) => {
+                                                    println!("ERROR: error sending path into queue - {}", err.to_string())
+                                                }
+                                            }
                                         },
                                         None => ()
                                     }
