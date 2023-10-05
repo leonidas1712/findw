@@ -158,7 +158,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                 tokio::spawn(async move {
                     let most_recent_url = path.get_most_recent_url(); // most recent url added to path
                     // network request -> all child hrefs, page_title (Option since may not exist)
+                        // TODO: add sync++, sync-- here so that a slow request on one child doesn't get lost
                     let get_info = most_recent_url.get_info().await;
+                    let curr_depth = path.depth;
         
                     match get_info {
                         Ok(info) => {
@@ -168,7 +170,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             // goal test, print path out if ok
                             path.goal_test_on_title(page_title, &cloned_pattern);
                             
-                            let curr_depth = path.depth;
+                            
                         
                             // TODO: spawn children here
                             if curr_depth < depth_limit {
@@ -177,25 +179,22 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             
         
                             // done spawning
-                            
-                            // reached depth_limit: sync--, then check if 0 => rx.close
-                            if curr_depth == depth_limit {
-                                let mut sync_num = sync.lock().unwrap();
-                                *sync_num -= 1;
-        
-                                // no more last level threads left: send Close msg
-                                if *sync_num == 0 {
-                                    tx.send(Message::Close);
-                                }
-                            }
-        
-        
-        
                         },
                         
                         // handle error. e.g bad url
                         Err(err) => {
                             println!("ERROR: {}", err.to_string());
+                        }
+                    }
+
+                    // reached depth_limit: sync--, then check if 0 => rx.close
+                    if curr_depth == 0 || curr_depth == depth_limit {
+                        let mut sync_num = sync.lock().unwrap();
+                        *sync_num -= 1;
+
+                        // no more last level threads left: send Close msg
+                        if *sync_num == 0 {
+                            tx.send(Message::Close);
                         }
                     }
         
