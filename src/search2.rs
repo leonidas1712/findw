@@ -16,6 +16,7 @@ struct Path {
         // TODO: Can use relative with lifetimes, &ref
     pub path_vis: HashSet<ParsedUrl>, 
     /// latest_url in path. extra variable for this because HashSet doesn't preserve insertion order
+        // TODO: use lifetimes so this can be a reference instead
     pub latest_url:ParsedUrl 
 }
 
@@ -26,6 +27,7 @@ impl Path {
         let latest_url = parse_base_url(url)?;
         let mut path_vis = HashSet::new();
         path_vis.insert(latest_url.clone()); // clone because value is moved
+    
 
         Ok(Path {
             depth:0,
@@ -34,6 +36,23 @@ impl Path {
             latest_url
         })
     }
+
+    /// Returns new Path with information added
+    pub fn add_info(&self, new_parsed_url:ParsedUrl, page_title:Option<String>)->Path{
+        let mut new_path = self.clone();
+        let latest_url = new_parsed_url.clone(); // clone because not using lifetimes/ref for latest_url field yet
+
+        new_path.depth += 1;
+        new_path.path_vis.insert(new_parsed_url);
+
+        if let Some(title) = page_title {
+            new_path.contents_array.push(title);
+        }
+
+        new_path.latest_url = latest_url;
+        new_path
+    }
+    
 
     /// Returns latest_url in this path by insertion order
     pub fn get_most_recent_url(&self)->&ParsedUrl {
