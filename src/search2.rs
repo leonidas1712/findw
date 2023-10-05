@@ -202,7 +202,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                                                     }
                                                 },
                                                 Err(err) => {
-                                                    println!("ERROR: error sending path into queue - {}", err.to_string())
+                                                    // println!("ERROR: error sending path into queue - {}", err.to_string())
                                                 }
                                             }
                                         },
@@ -219,7 +219,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         
                         // handle error. e.g bad url
                         Err(err) => {
-                            println!("ERROR: error requesting url - {}", err.to_string());
+                            // println!("ERROR: error requesting url - {}", err.to_string());
                         }
                     }
 
