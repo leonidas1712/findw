@@ -104,9 +104,18 @@ impl ParsedUrl {
             Some(title)
         };
 
-        // ch
         Ok(InfoResult { child_hrefs: links, page_title: opt_title })
-
+    }
+    
+    /// Get new parsed_url based on whether child_href is relative or not
+    pub fn get_new_parsed_url(&self, child_href:String)->Result<ParsedUrl> {
+        let mut new_url = self.clone();
+        if is_relative(&child_href) {
+            new_url.relative = child_href;
+            Ok(new_url)
+        } else {
+            parse_base_url(&child_href)
+        }   
     }
 }
 
@@ -209,6 +218,20 @@ pub mod tests {
         assert_eq!(is_relative("https://blog.janestreet.com/what-the-interns-have-wrought-2023/"), false);
         assert_eq!(is_relative("info.html"), true);
         assert_eq!(is_relative("/info.html"), true);
+    }
+
+    #[test]
+    pub fn test_get_new_parsed_url() {
+        let loc = "http://localhost:8000/info.html";
+        let url = parse_base_url(loc).unwrap();
+        let url2 = url.get_new_parsed_url(String::from("about.html")).unwrap();
+        assert_eq!(url2.to_string(),"http://localhost:8000/about.html");
+
+        // should ignore if absolute i.e just call parse_base
+        let new_href = String::from("https://blog.janestreet.com/what-the-interns-have-wrought-2023/");
+        let url2 = url.get_new_parsed_url(new_href).unwrap();
+        assert_eq!(url2.to_string(), "https://blog.janestreet.com/what-the-interns-have-wrought-2023/");
+
     }
 
     #[test]

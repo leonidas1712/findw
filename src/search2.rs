@@ -1,7 +1,7 @@
 use std::{collections::HashSet, fmt::{Display}, sync::{Arc,Mutex}};
 use anyhow::{Result};
 use tokio::sync::mpsc;
-use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
+use crate::url_helpers::{parse_base_url, ParsedUrl};
 
 /// Message from tx -> rx
 enum Message {
@@ -170,13 +170,11 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             // goal test, print path out if ok
                             path.goal_test_on_title(page_title, &cloned_pattern);
                             
-                            
-                        
                             // TODO: spawn children here
                             if curr_depth < depth_limit {
                                 // if child_depth == limit: sync++
                                 for child in child_hrefs {
-                                    
+
                                 }
                             }
                             
