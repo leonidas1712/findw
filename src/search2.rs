@@ -8,11 +8,12 @@ use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 #[derive(Clone)]
 struct Path {
     pub depth:usize,
-    pub contents_array: Vec<ParsedUrl>, // page titles so far for full path printing. TODO: modify to support grep on contents (need to store HTML content strings or objects)
+    pub contents_array: Vec<String>, // page titles so far for full path printing. TODO: modify to support grep on contents (need to store HTML content strings or objects)
     pub path_vis: HashSet<ParsedUrl>, // visited set to avoid cycles. for now, store full_url as String. TODO: Can use relative with lifetimes, &ref
-    pub parsed_url:ParsedUrl // wraps around base Url and relative url String
+    // pub parsed_url:ParsedUrl // wraps around base Url and relative url String
 }
 
+// Methods take extra argument for latest so we can avoid adding to array/set first
 impl Path {
     /// Create new path from given URL
     pub fn new(url:&str)->Result<Path> {
@@ -22,21 +23,20 @@ impl Path {
             depth:0,
             contents_array:vec![],
             path_vis:HashSet::new(),
-            parsed_url
         })
     }
 
-    // pub fn new_from_data(depth:usize, path_array:Vec<String> , path_vis: HashSet<String>, parsed_url:ParsedUrl)->Path {
-    //     Path {
-    //         depth,
-    //         contents_array: path_array,
-    //         path_vis,
-    //         parsed_url
-    //     }
-    // }
+    /// Returns last item in contents_array, None if empty
+    pub fn get_most_recent_url(&self)->Option<&ParsedUrl> {
+        self.contents_array.last()
+    }
 
-    // join current path titles with newest
-        // because we only get newest upon get req
+    /// Returns true if latest_url is already in visited set
+    pub fn is_visited(&self, latest_url:&ParsedUrl)->bool {
+        self.path_vis.contains(latest_url)
+    }
+
+    /// Join current path titles with newest, because we only get newest upon get request
     pub fn print_path(&self, latest_title:&str) -> String {
         let joined:Vec<String> = self.contents_array.iter().map(|url| url.to_string()).collect();
         let joined = joined.join(" => ");
@@ -79,22 +79,22 @@ impl Display for Path {
 // Improvements from Sep 15
 // Program stops when all tx go out of scope
     // Eventually children are no longer added so no more txs to clone - all dropped
-    pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
-        let initial_path = Path::new(url)?;
-        let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
-        println!("Starting search with: {}\n", initial_path);
-    
-        // for initial MPSC send - need other tx to clone for remaining workers
-        let first_tx = tx.clone();
-    
-        // send first path (task)
-        tokio::spawn(async move {
-            first_tx.send(initial_path);
-        });
+pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
+    let initial_path = Path::new(url)?;
+    let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
+    println!("Starting search with: {}\n", initial_path);
 
-    
-        Ok(())
-    }
+    // for initial MPSC send - need other tx to clone for remaining workers
+    let first_tx = tx.clone();
+
+    // send first path (task)
+    tokio::spawn(async move {
+        first_tx.send(initial_path);
+    });
+
+
+    Ok(())
+}
 
 
 // Improvements from Sep 15
