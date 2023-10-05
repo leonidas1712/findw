@@ -3,7 +3,7 @@ use anyhow::{Result};
 use tokio::sync::mpsc;
 use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 
-// TODO: Change to use &str where possible
+// TODO: Change to use &str where possible, change path_vis to contain just string hashes and cmp on that (perf opt?)
 /// Represents a node in the MPSC queue: a search path
 #[derive(Clone)]
 struct Path {
