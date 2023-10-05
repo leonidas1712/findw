@@ -27,8 +27,9 @@ impl Path {
     }
 
     /// Returns last item in contents_array, None if empty
-    pub fn get_most_recent_url(&self)->Option<&ParsedUrl> {
-        self.contents_array.last()
+    pub fn get_most_recent_url(&self) {
+        // self.path_vis.iter()
+        // self.contents_array.last()
     }
 
     /// Returns true if latest_url is already in visited set
@@ -66,7 +67,7 @@ impl Display for Path {
             set_str
         };
     
-        write!(f, "(d: {}, path: {}, vis:{}, rel: {}, base: {})", self.depth, joined_arr, set_str, self.parsed_url.relative, self.parsed_url.base.to_string())
+        write!(f, "(d: {}, path: {}, vis:{})", self.depth, joined_arr, set_str)
     }
 }
 
