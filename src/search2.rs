@@ -80,7 +80,7 @@ impl Path {
 impl Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let joined_arr:String = self.contents_array.iter().map(|s| s.to_string()).collect();
-        let set_str:String = self.path_vis.iter().map(|s| s.to_string()).collect();
+        let set_str:Vec<String> = self.path_vis.iter().map(|s| s.to_string()).collect();
 
         let joined_arr = if joined_arr.len() == 0 {
             String::from("[]")
@@ -91,10 +91,10 @@ impl Display for Path {
         let set_str = if set_str.len() == 0 {
             String::from("{}")
         } else {
-            set_str
+            format!("[{}]", set_str.join(", "))
         };
     
-        write!(f, "(d: {}, path: {}, vis:{})", self.depth, joined_arr, set_str)
+        write!(f, "(d: {}, path: {}, vis:{}, latest_url:{})", self.depth, joined_arr, set_str, self.latest_url.to_string())
     }
 }
 
@@ -122,6 +122,22 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
 
     Ok(())
+}
+
+#[cfg(test)]
+pub mod tests {
+    use crate::url_helpers::parse_base_url;
+
+    #[test]
+    pub fn test_path_add_info() {
+        let url = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
+        let path = super::Path::new(&url).unwrap();
+
+        let jane = "https://www.janestreet.com/";
+        let new_url = parse_base_url(jane).unwrap();
+        let path2 = path.add_info(new_url, Some(String::from("Home :: Jane Street")));
+        assert_eq!(path2.to_string(), "(d: 1, path: Home :: Jane Street, vis:[https://blog.janestreet.com/what-the-interns-have-wrought-2023/, https://www.janestreet.com/], latest_url:https://www.janestreet.com/)");
+    }
 }
 
 
