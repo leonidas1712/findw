@@ -84,6 +84,7 @@ impl Path {
 
     /// Perform goal test on path given title Option. If passes, print concatenated path.
     pub fn goal_test_on_title(&self, title:&Option<String>, pattern:&str) {
+        
         match title {
             Some(title_string) => {
                 // goal test passed
@@ -147,7 +148,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     while let Some(msg) = rx.recv().await {
         match msg {
             PathRcv(path) => {
-                println!("PATH_RECV: {}", path.to_string());
+                // println!("PATH_RECV: {}", path.to_string());
 
                 // without clone, pattern is moved in each iter so can't use again - TODO: fix by using Rc
                 let cloned_pattern = pattern.clone();
@@ -155,11 +156,13 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                 let tx = tx.clone(); // shadow
         
                 tokio::spawn(async move {
+
                     let most_recent_url = path.get_most_recent_url(); // most recent url added to path
                     // network request -> all child hrefs, page_title (Option since may not exist)
                         // TODO: add sync++, sync-- here so that a slow request on one child doesn't get lost
                     let get_info = most_recent_url.get_info().await;
                     let curr_depth = path.depth;
+
         
                     match get_info {
                         Ok(info) => {
