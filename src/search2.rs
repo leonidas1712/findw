@@ -1,11 +1,6 @@
-use std::{collections::HashSet, fmt::{Display, format, Debug}, vec, process::exit};
-use anyhow::{anyhow, Result};
-use regex::Regex;
-use reqwest::get;
-use scraper::node;
+use std::{collections::HashSet, fmt::{Display}};
+use anyhow::{Result};
 use tokio::sync::mpsc;
-use url::Url;
-
 use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 
 // TODO: Change to use &str where possible

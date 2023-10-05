@@ -1,4 +1,4 @@
-use std::{vec, fmt::Display};
+use std::{fmt::Display};
 use url::{Url};
 use anyhow::{anyhow, Result};
 
