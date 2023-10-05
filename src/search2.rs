@@ -43,7 +43,6 @@ impl Path {
     // join current path titles with newest
         // because we only get newest upon get req
     pub fn print_path(&self, latest_title:&str) -> String {
-    
         let joined = self.path_array.join(" => ");
 
         if joined.is_empty() {
@@ -98,8 +97,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     });
 
     while let Some(path) = rx.recv().await {
-        // println!("Full URL in main:{}", &path.parsed_url.get_full_url());
-
         // parent depth, stop if +1 > limit
         let copied_depth = path.depth;
 
@@ -108,16 +105,12 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
         let cloned_tx = tx.clone();
         let cloned_pat = pattern.clone();
 
-
         tokio::spawn(async move {
             // BLOCKING WITHIN TASK: add children nodes to mpsc - spawn new tasks
-                // TODO: handle task failure properly
             let get_info = path.parsed_url.get_info().await;
             
             match get_info {
                 Ok(info) => {
-                    // println!("INFO: {}", info);
-
                     // get title, hrefs
                     let page_title = info.page_title;
                     let child_hrefs = info.child_hrefs;
@@ -196,6 +189,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         // cloned_path.depth+=1;
                     }
                 },
+                // handle task failure: print error
                 Err(err) => {
                     println!("ERROR: {}", err);
                 }

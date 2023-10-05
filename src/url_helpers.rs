@@ -43,7 +43,7 @@ impl ParsedUrl {
         self.base.join(&self.relative).unwrap().to_string()
     }
 
-    // request full URL -> get child hrefs + document title - to request within task
+    /// request full URL -> get child hrefs + document title - to request within task
     // TODO: add individual tests for this
     pub async fn get_info(&self)->Result<InfoResult>{
         // TODO: Can't do const with runtime type - use thread_local?
