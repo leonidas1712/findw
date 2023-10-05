@@ -150,7 +150,16 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                 Ok(info) => {
                     let page_title = info.page_title;
                     let child_hrefs = info.child_hrefs;
+
+                    // goal test, print path out if ok
                     path.goal_test_on_title(page_title, &cloned_pattern);
+
+                    // return out if children are above depth_limit
+                    if path.depth + 1 > depth_limit {
+                        return;
+                    }
+
+                    
                 },
                 
                 // handle error. e.g bad url
