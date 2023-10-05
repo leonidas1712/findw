@@ -75,6 +75,20 @@ impl Path {
             joined + " => " + latest_title
         }
     }
+
+    /// Perform goal test on path given title Option. If passes, print concatenated path.
+    pub fn goal_test_on_title(&self, title:Option<String>, pattern:String) {
+        match title {
+            Some(title_string) => {
+                // goal test passed
+                if title_string.contains(&pattern) {
+                    let to_print = self.print_path(&title_string);
+                    println!("Found: {}", to_print);
+                }
+            },
+            None => ()
+        }
+    }
 }
 
 impl Display for Path {
@@ -130,7 +144,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
             match get_info {
                 Ok(info) => {
-                    
+                    let page_title = info.page_title;
+                    let child_hrefs = info.child_hrefs;
+                    // path.goal_test_on_title(title, pattern)
                 },
                 
                 // handle error. e.g bad url
