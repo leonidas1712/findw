@@ -7,10 +7,7 @@ then
 fi
 
 cargo b --release
-# hyperfine "xargs ./target/release/findw < input/$1.in" -r 3
 
-
-# TODO: make this work for all
 arr=(input/*.in)
 
 RUNS=$2
