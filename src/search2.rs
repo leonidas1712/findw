@@ -119,15 +119,10 @@ impl Display for Path {
     }
 }
 
-// get_info(full_url:&str) -> (child_hrefs:Vec<String>, page_title:Option<String>)
-    // 1. get req for full_url
-    // 2. parse HTML, get title and hrefs
-    // 3. return out
-
-
 // Improvements from Sep 15
-// Program stops when all tx go out of scope
-    // Eventually children are no longer added so no more txs to clone - all dropped
+// Program should stop when all tx go out of scope, but first tx has no chance to get dropped due to clone
+    // Current fix: use Arc<Mutex> to track last level nodes then call rx.close()
+    // but this breaks when depth_limit != actual max depth of graph
 use Message::*;
 pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
