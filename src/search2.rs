@@ -127,9 +127,10 @@ impl Display for Path {
 // Improvements from Sep 15
 // Program stops when all tx go out of scope
     // Eventually children are no longer added so no more txs to clone - all dropped
+use Message::*;
 pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
-    let (tx, mut rx) = mpsc::unbounded_channel::<Path>();
+    let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
     println!("Starting search with: {}\n", initial_path);
 
     // for initial MPSC send - need other tx to clone for remaining workers
@@ -137,67 +138,73 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
     // send first path (task)
     tokio::spawn(async move {
-        first_tx.send(initial_path);
+        first_tx.send(PathRcv(initial_path));
     });
 
     // sync last level threads: when it reaches 0, rx.close()
     let sync:Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
 
-    while let Some(path) = rx.recv().await {
-        println!("PATH_RECV: {}", path.to_string());
+    while let Some(msg) = rx.recv().await {
+        match msg {
+            PathRcv(path) => {
+                println!("PATH_RECV: {}", path.to_string());
 
-        // without clone, pattern is moved in each iter so can't use again
-            // TODO: fix by using Rc
-        let cloned_pattern = pattern.clone();
-        let sync = Arc::clone(&sync); // shadow
-
-        tokio::spawn(async move {
-            let most_recent_url = path.get_most_recent_url(); // most recent url added to path
-            // network request -> all child hrefs, page_title (Option since may not exist)
-            let get_info = most_recent_url.get_info().await;
-
-            match get_info {
-                Ok(info) => {
-                    let page_title = info.page_title;
-                    let child_hrefs = info.child_hrefs;
-
-                    // goal test, print path out if ok
-                    path.goal_test_on_title(page_title, &cloned_pattern);
-                    
-                    let curr_depth = path.depth;
-                
-                    // spawn children here
-                    if curr_depth < depth_limit {
-                        // if child_depth == limit: sync++
-                    }
-                    
-
-                    // done spawning
-                    
-                    // reached depth_limit: sync--, then check if 0 => rx.close
-                    if curr_depth == depth_limit {
-                        let mut sync_num = sync.lock().unwrap();
-                        *sync_num -= 1;
-
-                        // no more last level threads left
-                        if *sync_num == 0 {
-                            rx.close();
+                // without clone, pattern is moved in each iter so can't use again
+                    // TODO: fix by using Rc
+                let cloned_pattern = pattern.clone();
+                let sync = Arc::clone(&sync); // shadow
+        
+                tokio::spawn(async move {
+                    let most_recent_url = path.get_most_recent_url(); // most recent url added to path
+                    // network request -> all child hrefs, page_title (Option since may not exist)
+                    let get_info = most_recent_url.get_info().await;
+        
+                    match get_info {
+                        Ok(info) => {
+                            let page_title = info.page_title;
+                            let child_hrefs = info.child_hrefs;
+        
+                            // goal test, print path out if ok
+                            path.goal_test_on_title(page_title, &cloned_pattern);
+                            
+                            let curr_depth = path.depth;
+                        
+                            // spawn children here
+                            if curr_depth < depth_limit {
+                                // if child_depth == limit: sync++
+                            }
+                            
+        
+                            // done spawning
+                            
+                            // reached depth_limit: sync--, then check if 0 => rx.close
+                            if curr_depth == depth_limit {
+                                let mut sync_num = sync.lock().unwrap();
+                                *sync_num -= 1;
+        
+                                // no more last level threads left
+                                if *sync_num == 0 {
+                                    // rx.close();
+                                }
+                            }
+        
+        
+        
+                        },
+                        
+                        // handle error. e.g bad url
+                        Err(err) => {
+                            println!("ERROR: {}", err.to_string());
                         }
                     }
+        
+                });
+            },
 
+            Close => {
 
-
-                },
-                
-                // handle error. e.g bad url
-                Err(err) => {
-                    println!("ERROR: {}", err.to_string());
-                }
             }
-
-        });
-
-        // rx.close();
+        }
     }
 
     Ok(())
