@@ -83,7 +83,7 @@ impl Path {
     }
 
     /// Perform goal test on path given title Option. If passes, print concatenated path.
-    pub fn goal_test_on_title(&self, title:Option<String>, pattern:&str) {
+    pub fn goal_test_on_title(&self, title:&Option<String>, pattern:&str) {
         match title {
             Some(title_string) => {
                 // goal test passed
@@ -168,23 +168,31 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             let child_hrefs = info.child_hrefs;
         
                             // goal test, print path out if ok
-                            path.goal_test_on_title(page_title, &cloned_pattern);
+                            path.goal_test_on_title(&page_title, &cloned_pattern);
                             
                             // TODO: spawn children here
                             if curr_depth < depth_limit {
                                 // if child_depth == limit: sync++
                                 for child in child_hrefs {
-                                    // if parse fails on absolute -> None: unwrap_or = true -> loop will skip
-                                    let is_visited = most_recent_url
-                                    .get_new_parsed_url(child)
-                                    .ok()
-                                    .map(|url| path.is_visited(&url)).unwrap_or(true);
+                                    let get_new_parsed = most_recent_url.get_new_parsed_url(child).ok();
+                                    // true when err on parse -> skip this child
+                                    let is_vis = get_new_parsed
+                                    .clone()
+                                    .map(|url| path.is_visited(&url))
+                                    .unwrap_or(true);
 
-                                    if is_visited {
+                                    if is_vis {
                                         continue;
                                     }
-
                                     
+                                    // make a new path and add to queue, increase sync for leaf (depth == limit)
+                                    match get_new_parsed {
+                                        Some(url) => {
+
+                                        },
+                                        None => ()
+                                    }
+
                                 }
                             }
                             
