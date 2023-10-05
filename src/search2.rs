@@ -8,8 +8,8 @@ use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 #[derive(Clone)]
 struct Path {
     pub depth:usize,
-    pub contents_array: Vec<String>, // page titles so far for full path printing. TODO: modify to support grep on contents (need to store HTML content strings or objects)
-    pub path_vis: HashSet<String>, // visited set to avoid cycles. for now, store full_url as String. TODO: Can use relative with lifetimes, &ref
+    pub contents_array: Vec<ParsedUrl>, // page titles so far for full path printing. TODO: modify to support grep on contents (need to store HTML content strings or objects)
+    pub path_vis: HashSet<ParsedUrl>, // visited set to avoid cycles. for now, store full_url as String. TODO: Can use relative with lifetimes, &ref
     pub parsed_url:ParsedUrl // wraps around base Url and relative url String
 }
 
@@ -26,19 +26,20 @@ impl Path {
         })
     }
 
-    pub fn new_from_data(depth:usize, path_array:Vec<String> , path_vis: HashSet<String>, parsed_url:ParsedUrl)->Path {
-        Path {
-            depth,
-            contents_array: path_array,
-            path_vis,
-            parsed_url
-        }
-    }
+    // pub fn new_from_data(depth:usize, path_array:Vec<String> , path_vis: HashSet<String>, parsed_url:ParsedUrl)->Path {
+    //     Path {
+    //         depth,
+    //         contents_array: path_array,
+    //         path_vis,
+    //         parsed_url
+    //     }
+    // }
 
     // join current path titles with newest
         // because we only get newest upon get req
     pub fn print_path(&self, latest_title:&str) -> String {
-        let joined = self.contents_array.join(" => ");
+        let joined:Vec<String> = self.contents_array.iter().map(|url| url.to_string()).collect();
+        let joined = joined.join(" => ");
 
         if joined.is_empty() {
             latest_title.to_string()
@@ -90,109 +91,7 @@ impl Display for Path {
         tokio::spawn(async move {
             first_tx.send(initial_path);
         });
-    
-        while let Some(path) = rx.recv().await {
-            // parent depth, stop if +1 > limit
-            let copied_depth = path.depth;
-    
-            // cloned path for new task - Strat 1
-            // let mut cloned_path = path.clone();
-            let cloned_tx = tx.clone();
-            let cloned_pat = pattern.clone();
-    
-            tokio::spawn(async move {
-                // BLOCKING WITHIN TASK: add children nodes to mpsc - spawn new tasks
-                let get_info = path.parsed_url.get_info().await;
-                
-                match get_info {
-                    Ok(info) => {
-                        // get title, hrefs
-                        let page_title = info.page_title;
-                        let child_hrefs = info.child_hrefs;
-    
-    
-                        // GOAL TEST AND PRINT: right now just title.contains
-    
-                        // map to (title, bool) where bool=T means title meets goal test
-                        let page_title_contains = page_title
-                            .clone().map(|title| (title.clone(), title.contains(&cloned_pat)));
-    
-                        match page_title_contains {
-                            Some(res) => {
-                                // contains: print
-                                if res.1 {
-                                    let joined = path.print_path(&res.0);
-                                    println!("Found: '{}'", joined);
-                                }
-                            },
-                            None => ()
-                        }
-    
-                        // reached limit - just stop
-                        if copied_depth + 1 > depth_limit  {
-                            return;
-                        }
-    
-                        // add children
-                        for child in child_hrefs {
-                            // is_rel: diff logic
-                            if is_relative(&child) {
-                                let full_url = path.parsed_url.base.join(&child).unwrap();
-                                let full_url = full_url.to_string();
-                                let title = page_title.clone();
-    
-                                // shadow outer: need to clone for each task
-                                let mut cloned_path = path.clone();
-    
-    
-                                // visited in curr path already - skip
-                                if !cloned_path.path_vis.contains(&full_url) {
-                                    cloned_path.contents_array.push(title.unwrap_or("Empty Title".to_string()));
-                                    cloned_path.path_vis.insert(full_url);
-                                    cloned_path.parsed_url.relative = child;
-                                    cloned_path.depth += 1;
-    
-                                    cloned_tx.send(cloned_path);
-                                }
-                            } else {
-                                // make a new parsed_url
-                                // same logic for copy path array + copy vis_set-
-                                let mut cloned_path = path.clone();
-                                let full_url = child;
-                                let title = page_title.clone();
-    
-    
-                                if !cloned_path.path_vis.contains(&full_url) {
-                                    cloned_path.contents_array.push(title.unwrap_or("Empty Title".to_string()));
-                                    cloned_path.path_vis.insert(full_url.clone());
-    
-                                    // new parsedurl
-                                    let parsed_url = parse_base_url(&full_url);
-    
-                                    // if err ignore
-                                    match parsed_url {
-                                        Ok(url) => {
-                                            cloned_path.parsed_url = url;
-                                            cloned_path.depth += 1;
-                                            cloned_tx.send(cloned_path);
-    
-                                        },
-                                        _ => ()
-                                    }
-                                }
-                            }
-                            // cloned_path.depth+=1;
-                        }
-                    },
-                    // handle task failure: print error
-                    Err(err) => {
-                        println!("ERROR: {}", err);
-                    }
-                }
-    
-                // just pattern match (goal test) here, then only add children to queue
-           });
-        }
+
     
         Ok(())
     }

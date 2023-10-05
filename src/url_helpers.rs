@@ -45,6 +45,12 @@ impl PartialEq for ParsedUrl {
     }
 }
 
+impl Display for ParsedUrl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.get_full_url())
+    }
+}
+
 impl ParsedUrl {
     /// join base url with relative url to get full url
     pub fn get_full_url(&self)->String {
