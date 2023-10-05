@@ -8,8 +8,8 @@ use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 #[derive(Clone)]
 struct Path {
     pub depth:usize,
-    pub path_array: Vec<String>, // titles so far; TODO: modify to support grep on contents (need to store HTML content strings or objects)
-    pub path_vis: HashSet<String>, // for now, store full_url. TODO: how else can I use this with full/rel?
+    pub path_array: Vec<String>, // page titles so far for full path printing. TODO: modify to support grep on contents (need to store HTML content strings or objects)
+    pub path_vis: HashSet<String>, // visited set to avoid cycles. for now, store full_url as String. TODO: Can use relative with lifetimes, &ref
     pub parsed_url:ParsedUrl // wraps around base Url and relative url String
 }
 
