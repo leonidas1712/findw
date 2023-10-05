@@ -8,33 +8,41 @@ use crate::url_helpers::{parse_base_url, ParsedUrl, is_relative};
 #[derive(Clone)]
 struct Path {
     pub depth:usize,
-    pub contents_array: Vec<String>, // page titles so far for full path printing. TODO: modify to support grep on contents (need to store HTML content strings or objects)
-    pub path_vis: HashSet<ParsedUrl>, // visited set to avoid cycles. for now, store full_url as String. TODO: Can use relative with lifetimes, &ref
-    // pub parsed_url:ParsedUrl // wraps around base Url and relative url String
+    /// page titles so far (EXCLUDING latest_url) for full path printing. 
+        // exclude because at Path creation we have not done the req yet.
+        // TODO: modify to support grep on contents (need to store HTML content strings or objects)
+    pub contents_array: Vec<String>, 
+    /// visited set so far (INCLUDING latest_url) to avoid cycles. for now, store full_url as String. 
+        // TODO: Can use relative with lifetimes, &ref
+    pub path_vis: HashSet<ParsedUrl>, 
+    /// latest_url in path. extra variable for this because HashSet doesn't preserve insertion order
+    pub latest_url:ParsedUrl 
 }
 
 // Methods take extra argument for latest so we can avoid adding to array/set first
 impl Path {
     /// Create new path from given URL
     pub fn new(url:&str)->Result<Path> {
-        let parsed_url = parse_base_url(url)?;
+        let latest_url = parse_base_url(url)?;
+        let mut path_vis = HashSet::new();
+        path_vis.insert(latest_url.clone()); // clone because value is moved
 
         Ok(Path {
             depth:0,
             contents_array:vec![],
-            path_vis:HashSet::new(),
+            path_vis,
+            latest_url
         })
     }
 
-    /// Returns last item in contents_array, None if empty
-    pub fn get_most_recent_url(&self) {
-        // self.path_vis.iter()
-        // self.contents_array.last()
+    /// Returns latest_url in this path by insertion order
+    pub fn get_most_recent_url(&self)->&ParsedUrl {
+        &self.latest_url
     }
 
     /// Returns true if latest_url is already in visited set
-    pub fn is_visited(&self, latest_url:&ParsedUrl)->bool {
-        self.path_vis.contains(latest_url)
+    pub fn is_visited(&self, new_url:&ParsedUrl)->bool {
+        self.path_vis.contains(new_url)
     }
 
     /// Join current path titles with newest, because we only get newest upon get request
