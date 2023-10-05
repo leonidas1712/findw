@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # generate output file given input file.in
-# TODO: make it extensible to generate for all
 
 if [ ! "$#" -eq 1 ]
 then
