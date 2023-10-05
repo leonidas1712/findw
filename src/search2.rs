@@ -175,6 +175,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             // TODO: spawn children here
                             if curr_depth < depth_limit {
                                 // if child_depth == limit: sync++
+                                for child in child_hrefs {
+                                    
+                                }
                             }
                             
         
@@ -188,6 +191,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                     }
 
                     // reached depth_limit: sync--, then check if 0 => rx.close
+                    // why outside match: if match runs error branch below should still run
                     if curr_depth == 0 || curr_depth == depth_limit {
                         let mut sync_num = sync.lock().unwrap();
                         *sync_num -= 1;
