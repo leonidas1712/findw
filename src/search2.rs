@@ -118,7 +118,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                 Ok(info) => {
                     // println!("INFO: {}", info);
 
-
                     // get title, hrefs
                     let page_title = info.page_title;
                     let child_hrefs = info.child_hrefs;

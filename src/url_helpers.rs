@@ -2,13 +2,29 @@ use std::{vec, fmt::Display};
 use url::{Url};
 use anyhow::{anyhow, Result};
 
+/// Return result from ParsedUrl.get_info
+// TODO: change to use &str where possible
+pub struct InfoResult {
+    /// all href tags from children <a href> - can either be absolute or relative URL
+    pub child_hrefs: Vec<String>,
+    /// title of page from <title> tag - can be None if page has no title tag
+    pub page_title:Option<String>
+}
+
+impl Display for InfoResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let empty = "EMPTY TITLE".to_string();
+        write!(f, "(title: '{}', children: {:?})", self.page_title.as_ref().unwrap_or(&empty), self.child_hrefs)
+    }
+}
+
 /// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
 /// and relative url: (base, relative)
 /// Provides helper method for full url and parsing
 pub struct ParsedUrl {
-    // https://localhost:8000/ or https://blog.janestreet.com/
+    // https://localhost:8000/ or https://blog.janestreet.com/; Url comes from url crate
     pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
-    /// about.html or what-the-interns-have-wrought-2023
+    /// about.html or what-the-interns-have-wrought-2023; relative to base
     pub relative:String  
 }
 
@@ -21,26 +37,13 @@ impl Clone for ParsedUrl {
     }
 }
 
-/// Return result from get_info
-// TODO: change to use &str where possible
-pub struct InfoResult {
-    pub child_hrefs: Vec<String>,
-    pub page_title:Option<String>
-}
-
-impl Display for InfoResult {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let empty = "EMPTY TITLE".to_string();
-        write!(f, "(title: '{}', children: {:?})", self.page_title.as_ref().unwrap_or(&empty), self.child_hrefs)
-    }
-}
-
 impl ParsedUrl {
+    /// join base url with relative url to get full url
     pub fn get_full_url(&self)->String {
         self.base.join(&self.relative).unwrap().to_string()
     }
 
-    // request full URL -> get child hrefs + document title
+    // request full URL -> get child hrefs + document title - to request within task
     // TODO: add individual tests for this
     pub async fn get_info(&self)->Result<InfoResult>{
         // TODO: Can't do const with runtime type - use thread_local?
@@ -56,7 +59,7 @@ impl ParsedUrl {
 
         let document = scraper::Html::parse_document(&html);
     
-        // get hrefs raw
+        // get hrefs raw as strings
         let links = document.select(&link_selector);
         let links:Vec<_> = links.collect();
 
@@ -94,7 +97,7 @@ impl ParsedUrl {
 }
 
 
-
+/// Input: Full url string with scheme, domain, port etc. Output: ParsedUrl with base, relative separated
 pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
     let parsed = Url::parse(url);
     if parsed.is_err() {
@@ -168,6 +171,12 @@ pub mod tests {
         let res = res.unwrap();
         assert_eq!("https://blog.janestreet.com/", res.base.to_string());
         assert_eq!("https://blog.janestreet.com/what-the-interns-have-wrought-2023/", res.get_full_url());
+
+        // nested relative
+        let res2 = parse_base_url("https://blog.janestreet.com/author/yminsky/").unwrap();
+        assert_eq!(&res2.base.to_string(), "https://blog.janestreet.com/");
+        assert_eq!(&res2.relative, "/author/yminsky/");
+        assert_eq!(&res2.get_full_url(), "https://blog.janestreet.com/author/yminsky/");
 
         // rel. without or with / is fine
         // println!("JOIN: {}", res.base.join("/about.html").unwrap().to_string());
