@@ -149,8 +149,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
             PathRcv(path) => {
                 println!("PATH_RECV: {}", path.to_string());
 
-                // without clone, pattern is moved in each iter so can't use again
-                    // TODO: fix by using Rc
+                // without clone, pattern is moved in each iter so can't use again - TODO: fix by using Rc
                 let cloned_pattern = pattern.clone();
                 let sync = Arc::clone(&sync); // shadow
                 let tx = tx.clone(); // shadow
@@ -170,7 +169,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             // goal test, print path out if ok
                             path.goal_test_on_title(&page_title, &cloned_pattern);
                             
-                            // TODO: spawn children here
+                            // this check is done here instead of outside because of goal test
                             if curr_depth < depth_limit {
                                 // if child_depth == limit: sync++
                                 for child in child_hrefs {
@@ -204,6 +203,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                                                 }
                                             }
                                         },
+                                        // ignore if parse error on absolute
                                         None => ()
                                     }
 
@@ -216,7 +216,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         
                         // handle error. e.g bad url
                         Err(err) => {
-                            println!("ERROR: {}", err.to_string());
+                            println!("ERROR: error requesting url - {}", err.to_string());
                         }
                     }
 
