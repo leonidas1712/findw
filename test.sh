@@ -19,7 +19,6 @@ run_individual_test () {
 
   correct_output_file="output/$1.out"
 
-#   diff_file=results/$1$_diff.out
   diff -q <(sort $result_file) <(sort $correct_output_file)
   if [ $? -ne 0 ];
   then
