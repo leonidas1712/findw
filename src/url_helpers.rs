@@ -210,4 +210,26 @@ pub mod tests {
         assert_eq!(is_relative("info.html"), true);
         assert_eq!(is_relative("/info.html"), true);
     }
+
+    #[test]
+    pub fn test_hash_parsed_url() {
+        use std::collections::HashSet;
+        let url_str = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
+        let url = parse_base_url(&url_str).unwrap();
+
+        let url_copy = parse_base_url(&url_str).unwrap();
+
+        let url2 = "https://www.janestreet.com/";
+        let url2 = parse_base_url(url2).unwrap();
+
+        let mut h:HashSet<super::ParsedUrl> = HashSet::new();
+
+        h.insert(url);
+        h.insert(url_copy);
+        h.insert(url2.clone());
+        h.insert(url2);
+
+
+        assert_eq!(h.len(), 2);
+    }   
 }

@@ -159,7 +159,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         return;
                     }
 
-                    
+
                 },
                 
                 // handle error. e.g bad url
