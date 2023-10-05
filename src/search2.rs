@@ -153,6 +153,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                     // TODO: fix by using Rc
                 let cloned_pattern = pattern.clone();
                 let sync = Arc::clone(&sync); // shadow
+                let tx = tx.clone(); // shadow
         
                 tokio::spawn(async move {
                     let most_recent_url = path.get_most_recent_url(); // most recent url added to path
@@ -169,7 +170,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             
                             let curr_depth = path.depth;
                         
-                            // spawn children here
+                            // TODO: spawn children here
                             if curr_depth < depth_limit {
                                 // if child_depth == limit: sync++
                             }
@@ -182,9 +183,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                                 let mut sync_num = sync.lock().unwrap();
                                 *sync_num -= 1;
         
-                                // no more last level threads left
+                                // no more last level threads left: send Close msg
                                 if *sync_num == 0 {
-                                    // rx.close();
+                                    tx.send(Message::Close);
                                 }
                             }
         
@@ -201,8 +202,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                 });
             },
 
+            // close rcv - need to send msg because rx.close() not possible within individual tokio task since rx is single consumer
             Close => {
-
+                rx.close();
             }
         }
     }
