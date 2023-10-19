@@ -99,7 +99,6 @@ impl ParsedUrl {
         let title = match title_select {
             Some(elem) => elem.inner_html(),
             None => { 
-                // println!("EMPTY");
                 String::from("(Empty title)") 
             }
         };

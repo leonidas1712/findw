@@ -8,6 +8,7 @@ in_files.sort()
 
 LINE_START="Found:" # start of a path print
 PATH_SPLIT="=>" # delimiter inside a path
+EMPTY_TITLE = "(Empty title)"
 
 # contains specified pattern at the end of each path
 # no duplicate paths (same path printed twice)
