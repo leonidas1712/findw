@@ -1,4 +1,4 @@
-use findw::{search2::search2, consts};
+use findw::{search2::{search2, search_without_stop}, consts};
 use anyhow::{anyhow, Result};
 
 // cargo r -- http://localhost:8000/index.html title 0
@@ -33,6 +33,6 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let args = parse_args(args)?;
-    search2(&args.url,args.pattern, args.depth_limit).await
+    search_without_stop(&args.url,args.pattern, args.depth_limit).await
 }
 
