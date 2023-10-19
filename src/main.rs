@@ -49,22 +49,12 @@ fn parse_args(args:Vec<String>)->Result<CliArgs> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    // let args: Vec<String> = std::env::args().collect();
-    // if args.len() != 4 {
-    //     return Err(anyhow!(consts::USAGE))
-    // }
-
-    // let args = parse_args(args)?;
-
-    // search2(&args.url,args.pattern, args.depth_limit).await
-
     let args = Args::parse();
-    println!("url, pattern, depth_limit, hanging:{}, {}, {}, {}", args.url, args.pattern, args.depth_limit, args.hanging);
-
-
-    // search2(&args.url,args.pattern, args.depth_limit).await
-
-
-    Ok(())
+    
+    if args.hanging {
+        search_without_stop(&args.url, args.pattern, args.depth_limit).await
+    } else {
+        search2(&args.url,args.pattern, args.depth_limit).await
+    }
 }
 
