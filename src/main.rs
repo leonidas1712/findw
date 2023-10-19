@@ -1,5 +1,6 @@
 use findw::{search2::{search2, search_without_stop}, consts};
 use anyhow::{anyhow, Result};
+use clap::Parser;
 
 // cargo r -- http://localhost:8000/index.html title 0
 
@@ -10,6 +11,27 @@ struct CliArgs {
     pub pattern:String,
     pub depth_limit:usize
 }
+
+
+// Clap
+#[derive(Parser, Debug)]
+#[command(author, version, about)]
+struct Args {
+    /// URL to start searching from
+    pub url: String,
+
+    /// Pattern to search for
+    pub pattern:String,
+
+    /// Depth limit. Should be an integer > 0
+    pub depth_limit:usize,
+
+    /// If present, runs hanging version (doesn't stop)
+    #[arg(short)]
+    pub hanging:bool
+}
+
+
 
 /// Assumption: length = 3
 fn parse_args(args:Vec<String>)->Result<CliArgs> {
@@ -27,12 +49,22 @@ fn parse_args(args:Vec<String>)->Result<CliArgs> {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() != 4 {
-        return Err(anyhow!(consts::USAGE))
-    }
+    // let args: Vec<String> = std::env::args().collect();
+    // if args.len() != 4 {
+    //     return Err(anyhow!(consts::USAGE))
+    // }
 
-    let args = parse_args(args)?;
-    search2(&args.url,args.pattern, args.depth_limit).await
+    // let args = parse_args(args)?;
+
+    // search2(&args.url,args.pattern, args.depth_limit).await
+
+    let args = Args::parse();
+    println!("url, pattern, depth_limit, hanging:{}, {}, {}, {}", args.url, args.pattern, args.depth_limit, args.hanging);
+
+
+    // search2(&args.url,args.pattern, args.depth_limit).await
+
+
+    Ok(())
 }
 
