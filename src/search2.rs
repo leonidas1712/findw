@@ -114,7 +114,9 @@ impl Path {
 impl Display for Path {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let joined_arr:String = self.contents_array.iter().map(|s| s.to_string()).collect();
-        let set_str:Vec<String> = self.path_vis.iter().map(|s| s.to_string()).collect();
+
+        let mut set_str:Vec<String> = self.path_vis.iter().map(|s| s.to_string()).collect();
+        set_str.sort();
 
         let joined_arr = if joined_arr.len() == 0 {
             String::from("[]")
@@ -393,7 +395,7 @@ pub mod tests {
         // let add = new_url.clone();
 
         let path2 = path.add_info(new_url, Some(String::from("Home :: Jane Street")));
-        assert_eq!(path2.to_string(), "(depth: 1, path: Home :: Jane Street, vis:[https://www.janestreet.com/, https://blog.janestreet.com/what-the-interns-have-wrought-2023/], latest_url:https://www.janestreet.com/)");
+        assert_eq!(path2.to_string(), "(depth: 1, path: Home :: Jane Street, vis:[https://blog.janestreet.com/what-the-interns-have-wrought-2023/, https://www.janestreet.com/], latest_url:https://www.janestreet.com/)");
         
         // path2.add_info(add, Some(String::from("Home :: Jane Street")));
         // dbg!(path2.to_string());
