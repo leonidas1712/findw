@@ -250,7 +250,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 
             // close rcv - need to send msg because rx.close() not possible within individual tokio task since rx is single consumer
             Close => {
-                println!("Closed");
                 rx.close();
             }
         }
@@ -371,7 +370,6 @@ pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->R
 
             // close rcv - need to send msg because rx.close() not possible within individual tokio task since rx is single consumer
             Close => {
-                println!("Closed");
                 rx.close();
             }
         }
