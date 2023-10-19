@@ -102,8 +102,8 @@ impl Path {
                 if title_string.contains(pattern) {
                     let to_print = self.print_path(&title_string);
                     println!("Found: {}", to_print);
-                    println!("VIS_SET:{}", print_set(&self.path_vis));
-                    println!("");
+                    // println!("VIS_SET:{}", print_set(&self.path_vis));
+                    // println!("");
                 }
             },
             None => ()
@@ -392,12 +392,12 @@ pub mod tests {
 
         let jane = "https://www.janestreet.com/";
         let new_url = parse_base_url(jane).unwrap();
-        // let add = new_url.clone();
+        let add = new_url.clone();
 
         let path2 = path.add_info(new_url, Some(String::from("Home :: Jane Street")));
         assert_eq!(path2.to_string(), "(depth: 1, path: Home :: Jane Street, vis:[https://blog.janestreet.com/what-the-interns-have-wrought-2023/, https://www.janestreet.com/], latest_url:https://www.janestreet.com/)");
         
-        // path2.add_info(add, Some(String::from("Home :: Jane Street")));
-        // dbg!(path2.to_string());
+        path2.add_info(add, Some(String::from("Home :: Jane Street")));
+        dbg!(path2.to_string());
     }
 }

@@ -1,4 +1,4 @@
-use std::{fmt::Display};
+use std::{fmt::Display, hash::{Hash, Hasher}};
 use url::{Url};
 use anyhow::{anyhow, Result};
 
@@ -21,7 +21,7 @@ impl Display for InfoResult {
 /// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
 /// and relative url: (base, relative).
 /// Provides helper method for full url and parsing
-#[derive(Hash, Eq)]
+#[derive(Eq)]
 pub struct ParsedUrl {
     // https://localhost:8000/ or https://blog.janestreet.com/; Url comes from url crate
     pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
@@ -42,6 +42,13 @@ impl PartialEq for ParsedUrl {
     fn eq(&self, other: &Self) -> bool {
         let other_str = other.get_full_url();
         self.get_full_url().eq(&other_str)
+    }
+}
+
+impl Hash for ParsedUrl {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let string = self.get_full_url();
+        string.hash(state);
     }
 }
 
