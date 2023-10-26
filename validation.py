@@ -18,12 +18,12 @@ def validate_path(path_num:int, path:List[str], pattern:str)->Optional[str]:
     # print(path)
     last = path[-1]
     if not pattern in last:
-        return f'ERROR: last title {last} of path {path_num} does not contain pattern {pattern}'
+        return f'ERROR: last title "{last}" of path {path_num} does not contain pattern "{pattern}"'
     
     path_set:set[str] = set()
     for title in path:
         if title != EMPTY_TITLE and title in path_set:
-            return f'ERROR: title {title} seen twice in path {path_num}: {path}'
+            return f'ERROR: title "{title}" seen twice in path {path_num}: {path}'
         path_set.add(title)
 
 
@@ -62,9 +62,13 @@ def process(in_files:List[str]):
 
             for (idx, path) in enumerate(titles):
                 path_num = idx+1
+                path_tup = tuple(path)
+
                 if tuple(path) in seen_paths:
-                    f'ERROR: path {path_num} was seen before in {out_file}'
+                    print(f'ERROR: path {path_num} was seen before in {out_file}')
                     continue
+                
+                seen_paths.add(path_tup)
                 
                 err = validate_path(path_num, path, pattern)
                 if err:

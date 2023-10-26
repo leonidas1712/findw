@@ -9,17 +9,6 @@ enum Message {
     Close
 }
 
-fn print_set<T:Display>(set:&HashSet<T>)->String{
-    let mut s = String::from("");
-
-    for elem in set.iter() {
-        s += &elem.to_string();
-        s+= ",";
-    }
-
-    s
-}
-
 // TODO: Change to use &str where possible, change path_vis to contain just string hashes and cmp on that (perf opt?)
 /// Represents a node in the MPSC queue: a search path
 #[derive(Clone)]
@@ -142,7 +131,9 @@ use Message::*;
 pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
-    println!("Starting search with: {}\n", initial_path);
+    // println!("Starting search with: {}\n", initial_path);
+    
+    
 
     // for initial MPSC send - need other tx to clone for remaining workers
     let first_tx = tx.clone();
@@ -262,7 +253,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
 pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
-    println!("Starting search with: {}\n", initial_path);
+    // println!("Starting search with: {}\n", initial_path);
 
     // for initial MPSC send - need other tx to clone for remaining workers
     let first_tx = tx.clone();
