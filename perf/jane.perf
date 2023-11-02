@@ -1,4 +1,4 @@
 Benchmark 1: xargs ./target/release/findw < input/jane.in
-  Time (mean ± σ):      8.096 s ±  4.244 s    [User: 0.187 s, System: 0.081 s]
-  Range (min … max):    4.693 s … 12.852 s    3 runs
+  Time (mean ± σ):      6.871 s ±  0.095 s    [User: 0.185 s, System: 0.078 s]
+  Range (min … max):    6.761 s …  6.933 s    3 runs
  
