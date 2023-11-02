@@ -1,18 +1,5 @@
-use findw::{search2::{search2, search_without_stop}, consts};
-use anyhow::{anyhow, Result};
+use findw::{search2::search2, search_without_stop::search_without_stop};
 use clap::Parser;
-
-// cargo r -- http://localhost:8000/index.html title 0
-
-// TODO: replace with clap once args get more complex
-#[derive(Debug)]
-struct CliArgs {
-    pub url:String,
-    pub pattern:String,
-    pub depth_limit:usize
-}
-
-
 // Clap
 #[derive(Parser, Debug)]
 #[command(author, version, about)]
