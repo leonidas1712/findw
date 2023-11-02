@@ -28,7 +28,7 @@ struct Args {
 
     /// If present, runs hanging version (doesn't stop)
     #[arg(short)]
-    pub hanging:bool
+    pub no_stop:bool
 }
 
 
@@ -51,7 +51,7 @@ fn parse_args(args:Vec<String>)->Result<CliArgs> {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     
-    if args.hanging {
+    if args.no_stop {
         search_without_stop(&args.url, args.pattern, args.depth_limit).await
     } else {
         search2(&args.url,args.pattern, args.depth_limit).await
