@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::{Display}, sync::{Arc,Mutex}};
+use std::{collections::HashSet, fmt::{Display}, sync::{Arc,Mutex}, string};
 use anyhow::{Result};
 use tokio::sync::mpsc;
 use crate::url_helpers::{parse_base_url, ParsedUrl};
@@ -83,13 +83,13 @@ impl Path {
     }
 
     /// Perform goal test on path given title Option. If passes, print concatenated path.
-    pub fn goal_test_on_title(&self, title:&Option<String>, pattern:&str) {
+    pub fn goal_test_on_title(&self, title:&Option<String>, pattern:&str, string_to_print:&str) {
         
         match title {
             Some(title_string) => {
                 // goal test passed
                 if title_string.contains(pattern) {
-                    let to_print = self.print_path(&title_string);
+                    let to_print = self.print_path(string_to_print);
                     println!("Found: {}", to_print);
                     // println!("VIS_SET:{}", print_set(&self.path_vis));
                     // println!("");
@@ -168,7 +168,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                             let child_hrefs = info.child_hrefs;
         
                             // goal test, print path out if ok
-                            path.goal_test_on_title(&page_title, &cloned_pattern);
+                            path.goal_test_on_title(&page_title, &cloned_pattern, &most_recent_url.to_string());
                             
                             // this check is done here instead of outside because of goal test
                             if curr_depth < depth_limit {
@@ -188,7 +188,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                                     // make a new path and add to queue, increase sync for leaf (depth == limit)
                                     match get_new_parsed {
                                         Some(url) => {
-                                            let new_title = page_title.clone();
+                                            // new_title: title of parent of this path
+                                            // let new_title = page_title.clone();
+                                            let new_title = Some(most_recent_url.to_string());
                                             let new_path = path.add_info(url, new_title);
 
                                             // add to queue, sync++ if leaf and send was successful
@@ -287,8 +289,8 @@ pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->R
                             let page_title = info.page_title;
                             let child_hrefs = info.child_hrefs;
         
-                            // goal test, print path out if ok
-                            path.goal_test_on_title(&page_title, &cloned_pattern);
+                           // goal test, print path out if ok
+                           path.goal_test_on_title(&page_title, &cloned_pattern, &most_recent_url.to_string());
                             
                             // this check is done here instead of outside because of goal test
                             if curr_depth < depth_limit {
@@ -308,7 +310,9 @@ pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->R
                                     // make a new path and add to queue, increase sync for leaf (depth == limit)
                                     match get_new_parsed {
                                         Some(url) => {
-                                            let new_title = page_title.clone();
+                                            // let new_title = page_title.clone();
+                                            let new_title = Some(most_recent_url.to_string());
+                                            // new_title: title of parent of this path
                                             let new_path = path.add_info(url, new_title);
 
                                             // add to queue, sync++ if leaf and send was successful
