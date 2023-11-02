@@ -41,8 +41,6 @@ if [[ "$1" == "all" ]]; then
     printf ""
   done
 else
-  # echo "Running test $1"
-  # run_individual_test $1
   for case in "$@"
   do
     run_individual_test "$case"
