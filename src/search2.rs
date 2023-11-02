@@ -130,11 +130,8 @@ impl Display for Path {
 use Message::*;
 pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
-    let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
-    // println!("Starting search with: {}\n", initial_path);
+    let (tx, mut rx) = mpsc::unbounded_channel::<Message>();    
     
-    
-
     // for initial MPSC send - need other tx to clone for remaining workers
     let first_tx = tx.clone();
 
