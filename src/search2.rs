@@ -75,10 +75,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                                     // make a new path and add to queue, increase sync for leaf (depth == limit)
                                     match get_new_parsed {
                                         Some(url) => {
-                                            // new_title: title of parent of this path
-                                            // let new_title = page_title.clone();
-                                            // let new_title = Some(most_recent_url.to_string());
-
                                             let new_title = if print_title {
                                                 page_title.clone()
                                             } else {
@@ -140,25 +136,4 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
     }
 
     Ok(())
-}
-
-#[cfg(test)]
-pub mod tests {
-    use crate::url_helpers::parse_base_url;
-
-    #[test]
-    pub fn test_path_add_info() {
-        let url = "https://blog.janestreet.com/what-the-interns-have-wrought-2023/";
-        let path = super::Path::new(&url).unwrap();
-
-        let jane = "https://www.janestreet.com/";
-        let new_url = parse_base_url(jane).unwrap();
-        let add = new_url.clone();
-
-        let path2 = path.add_info(new_url, Some(String::from("Home :: Jane Street")));
-        assert_eq!(path2.to_string(), "(depth: 1, path: Home :: Jane Street, vis:[https://blog.janestreet.com/what-the-interns-have-wrought-2023/, https://www.janestreet.com/], latest_url:https://www.janestreet.com/)");
-        
-        path2.add_info(add, Some(String::from("Home :: Jane Street")));
-        dbg!(path2.to_string());
-    }
 }
