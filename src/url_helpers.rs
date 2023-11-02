@@ -2,6 +2,8 @@ use std::{fmt::Display, hash::{Hash, Hasher}};
 use url::{Url};
 use anyhow::{anyhow, Result};
 
+use crate::consts;
+
 /// Return result from ParsedUrl.get_info
 // TODO: change to use &str where possible
 pub struct InfoResult {
@@ -99,7 +101,7 @@ impl ParsedUrl {
         let title = match title_select {
             Some(elem) => elem.inner_html(),
             None => { 
-                String::from("(Empty title)") 
+                String::from(consts::EMPTY_TITLE) 
             }
         };
 

@@ -1,14 +1,14 @@
 use std::{sync::{Arc,Mutex}};
 use anyhow::{Result};
 use tokio::sync::mpsc;
-use crate::search_helpers::*;
+use crate::{search_helpers::*, consts};
 use Message::*;
 
 // Improvements from Sep 15
 // Program should stop when all tx go out of scope, but first tx has no chance to get dropped due to clone
     // Current fix: use Arc<Mutex> to track last level nodes then call rx.close()
     // but this breaks when depth_limit != actual max depth of graph
-pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
+pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bool)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();    
     
@@ -46,9 +46,16 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                         Ok(info) => {
                             let page_title = info.page_title;
                             let child_hrefs = info.child_hrefs;
+
+                            if print_title {
+                                let title_print = page_title.clone().unwrap_or(String::from(consts::EMPTY_TITLE));
+                                path.goal_test_on_title(&page_title, &cloned_pattern, &title_print);
+                            } else {
+                                path.goal_test_on_title(&page_title, &cloned_pattern, &most_recent_url.to_string());
+                            }
+
         
                             // goal test, print path out if ok
-                            path.goal_test_on_title(&page_title, &cloned_pattern, &most_recent_url.to_string());
                             
                             // this check is done here instead of outside because of goal test
                             if curr_depth < depth_limit {
@@ -70,7 +77,14 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize)->Result<()> {
                                         Some(url) => {
                                             // new_title: title of parent of this path
                                             // let new_title = page_title.clone();
-                                            let new_title = Some(most_recent_url.to_string());
+                                            // let new_title = Some(most_recent_url.to_string());
+
+                                            let new_title = if print_title {
+                                                page_title.clone()
+                                            } else {
+                                                Some(most_recent_url.to_string())
+                                            };
+
                                             let new_path = path.add_info(url, new_title);
 
                                             // add to queue, sync++ if leaf and send was successful
