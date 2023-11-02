@@ -125,7 +125,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                         }
                     }
         
-                });
+                }); // end of tokio::spawn
             },
 
             // close rcv - need to send msg because rx.close() not possible within individual tokio task since rx is single consumer
