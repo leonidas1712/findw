@@ -1,0 +1,4 @@
+Benchmark 1: xargs ./target/release/findw < input/2.in
+  Time (mean ± σ):      40.9 ms ±  53.3 ms    [User: 3.0 ms, System: 6.1 ms]
+  Range (min … max):     8.8 ms … 102.5 ms    3 runs
+ 

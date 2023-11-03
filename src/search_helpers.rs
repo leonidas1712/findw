@@ -89,9 +89,8 @@ impl Path {
                 // goal test passed
                 if title_string.contains(pattern) {
                     let to_print = self.print_path(string_to_print);
-                    println!("Found: {}", to_print);
-                    // println!("VIS_SET:{}", print_set(&self.path_vis));
-                    // println!("");
+                    // println!("Found: {}", to_print);
+                    println!("{}", to_print);
                 }
             },
             None => ()

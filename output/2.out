@@ -1,12 +1,12 @@
-Found: http://localhost:8000/index.html
-Found: http://localhost:8000/index.html => http://localhost:8000/about.html
-Found: http://localhost:8000/index.html => http://localhost:8001/index.html
-Found: http://localhost:8000/index.html => http://localhost:8000/contact.html
-Found: http://localhost:8000/index.html => http://localhost:8000/no_title.html
-Found: http://localhost:8000/index.html => http://localhost:8000/info.html
-Found: http://localhost:8000/index.html => http://localhost:8001/index.html => http://localhost:8001/about.html
-Found: http://localhost:8000/index.html => http://localhost:8000/contact.html => http://localhost:8000/about.html
-Found: http://localhost:8000/index.html => http://localhost:8000/contact.html => http://localhost:8000/info.html
-Found: http://localhost:8000/index.html => http://localhost:8000/no_title.html => http://localhost:8000/info.html
-Found: http://localhost:8000/index.html => http://localhost:8000/no_title.html => http://localhost:8000/about.html
-Found: http://localhost:8000/index.html => http://localhost:8000/info.html => http://localhost:8000/about.html
+http://localhost:8000/index.html
+http://localhost:8000/index.html => http://localhost:8001/index.html
+http://localhost:8000/index.html => http://localhost:8000/contact.html
+http://localhost:8000/index.html => http://localhost:8000/about.html
+http://localhost:8000/index.html => http://localhost:8000/no_title.html
+http://localhost:8000/index.html => http://localhost:8000/info.html
+http://localhost:8000/index.html => http://localhost:8001/index.html => http://localhost:8001/about.html
+http://localhost:8000/index.html => http://localhost:8000/contact.html => http://localhost:8000/about.html
+http://localhost:8000/index.html => http://localhost:8000/info.html => http://localhost:8000/about.html
+http://localhost:8000/index.html => http://localhost:8000/contact.html => http://localhost:8000/info.html
+http://localhost:8000/index.html => http://localhost:8000/no_title.html => http://localhost:8000/info.html
+http://localhost:8000/index.html => http://localhost:8000/no_title.html => http://localhost:8000/about.html
