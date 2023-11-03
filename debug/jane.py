@@ -101,26 +101,26 @@ jane_list = [
     "https://www.janestreet.com/ad-cookie-policy/"
 ]
 
-print(len(jane_list))
+print("Initial length:", (len(jane_list)))
 jane_list = list(map(lambda x: x[:-1] if x[-1] == '/' else x, jane_list))
-print(len(jane_list))
 
 jane = set(jane_list)
-print(len(jane))
+print("Length of set (de-dup):", len(jane))
 
 with open('output/jane.out') as jane_out:
     text = jane_out.read()
     text = text.split('\n')
-    child_set = set() # set of child links from 1st pg
+    child_arr = [] # set of child links from 1st pg
     
     for line in text:
         child = line.split("=>")[-1]
         child = child.strip()
         if child:
-            child_set.add(child)
+            child_arr.append(child)
         
-    print("jane.out:", len(child_set))
-    for x in sorted(child_set):
+    print("Length of jane.out:", len(child_arr))
+    print("Contents of jane.out:")
+    for x in sorted(child_arr):
         print(x)
     print("-----")
     print("DOM API:", len(jane))
@@ -130,10 +130,10 @@ with open('output/jane.out') as jane_out:
     print()
     print("Difference: what is in DOM API scrape but not in findw output?")
     print("-----")
-    st = jane.difference(sorted(child_set))
+    st = jane.difference(set(sorted(child_arr)))
     
     for link in sorted(st):
-        if (link+'/') in child_set:
+        if (link+'/') in child_arr:
             continue
         print(link)
         
