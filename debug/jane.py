@@ -139,16 +139,7 @@ with open('output/jane.out') as jane_out:
         
         
 # Diff output:
-
-# https://blog.janestreet.com/what-the-interns-have-wrought-2023/# - this is a cycle 
-
-## These two are relative links - search fn constructs as "https://blog.janestreet.com/" + "#menu" which is usually correct
-# for other rel links but for these 2 happen to be wrong
-    # Example: href='/tag/async' corresponds to 'https://blog.janestreet.com/tag/async'
-# https://blog.janestreet.com/what-the-interns-have-wrought-2023/#menu
-# https://blog.janestreet.com/what-the-interns-have-wrought-2023/#search
-
-# --- these don't have Jane in title ----
+    # All correct: none have Jane in the title
 # http://www.linkedin.com/shareArticle?mini=true&url=https://blog.janestreet.com/what-the-interns-have-wrought-2023/&title=Jane%20Street%20Tech%20Blog%20-%20What%20the%20interns%20have%20wrought,%202023%20edition&summary=We%E2%80%99re%20once%20again%20at%20the%20end%20of%20our%20internship%20season,%20and%20it%E2%80%99s%20my%20task%20to%20provide%20a%20few%20highlights%20of%20what%20the%20dev%20interns%20accomplished%20while%20they%20were%20here.%20The%20program%20was%20big!%20We%20had%20152%20software%20engineering%20interns,%20drawn%20from%2058%20schools%20across%2019%20different%20countries.%20And%20that%E2%80%99s%20not...&source=https://blog.janestreet.com/what-the-interns-have-wrought-2023
 # https://en.wikipedia.org/wiki/Linear_temporal_logic
 # https://github.com/inhabitedtype/angstrom
@@ -160,3 +151,4 @@ with open('output/jane.out') as jane_out:
 # https://www.facebook.com/sharer.php?u=https://blog.janestreet.com/what-the-interns-have-wrought-2023
 # https://www.finra.org
 # https://www.youtube.com/watch?v=Rt3XyeFHvt4
+    

@@ -27,15 +27,12 @@ impl Display for InfoResult {
 pub struct ParsedUrl {
     // https://localhost:8000/ or https://blog.janestreet.com/; Url comes from url crate
     pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
-    /// about.html or what-the-interns-have-wrought-2023; relative to base
-    pub relative:String  
 }
 
 impl Clone for ParsedUrl {
     fn clone(&self) -> Self {
         ParsedUrl {
             base: self.base.clone(),
-            relative: self.relative.clone()
         }
     }
 }
@@ -63,7 +60,7 @@ impl Display for ParsedUrl {
 impl ParsedUrl {
     /// join base url with relative url to get full url
     pub fn get_full_url(&self)->String {
-        self.base.join(&self.relative).unwrap().to_string()
+        self.base.to_string()
     }
 
     /// request full URL -> get child hrefs + document title - to request within task
@@ -115,16 +112,29 @@ impl ParsedUrl {
         Ok(InfoResult { child_hrefs: links, page_title: opt_title })
     }
     
-    /// Get new parsed_url based on whether child_href is relative or not
+    /// Get new parsed_url based on whether child_href is relative or not - url.join handles this
     pub fn get_new_parsed_url(&self, child_href:String)->Result<ParsedUrl> {
-        let mut new_url = self.clone();
-        if is_relative(&child_href) {
-            new_url.relative = child_href;
-            // println!("NEW URL:{}", new_url.to_string());
-            Ok(new_url)
-        } else {
-            parse_base_url(&child_href)
-        }   
+        let new_url = self.base.join(&child_href);
+        let mut new_parsed = self.clone();
+
+        match new_url {
+            Ok(res) => {
+                new_parsed.base = res;
+                Ok(new_parsed)
+            },
+            Err(err) => {
+                Err(anyhow!(err))
+            }
+        }
+
+        // let mut new_url = self.clone();
+        // if is_relative(&child_href) {
+        //     new_url.relative = child_href;
+        //     // println!("NEW URL:{}", new_url.to_string());
+        //     Ok(new_url)
+        // } else {
+        //     parse_base_url(&child_href)
+        // }   
     }
 }
 
@@ -143,25 +153,27 @@ pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
         return Err(anyhow!("URL '{}' has no domain.", url));
     }
 
-    let scheme = parsed.scheme(); // http or https
-    let domain = domain.unwrap(); // localhost or blog.janestreet.com
-    let port = parsed.port(); // 8000
-    let relative = parsed.path();
+    Ok(ParsedUrl { base: parsed })
 
-    // make into the right string
-    let base_url = match port {
-        Some(prt) => {
-            format!("{scheme}://{domain}:{prt}")
-        },
+    // let scheme = parsed.scheme(); // http or https
+    // let domain = domain.unwrap(); // localhost or blog.janestreet.com
+    // let port = parsed.port(); // 8000
+    // let relative = parsed.path();
 
-        None => {
-            format!("{scheme}://{domain}")
-        }
-    };
+    // // make into the right string
+    // let base_url = match port {
+    //     Some(prt) => {
+    //         format!("{scheme}://{domain}:{prt}")
+    //     },
+
+    //     None => {
+    //         format!("{scheme}://{domain}")
+    //     }
+    // };
     
-    // parse back into Url
-    let base_url = Url::parse(&base_url)?;
-    Ok(ParsedUrl { base: base_url, relative: relative.to_string()})
+    // // parse back into Url
+    // let base_url = Url::parse(&base_url)?;
+    // Ok(ParsedUrl { base: base_url, relative: relative.to_string()})
 }
 
 /// Return true if URL is relative, else false
@@ -260,7 +272,7 @@ pub mod tests {
         // nested relative
         let res2 = parse_base_url("https://blog.janestreet.com/author/yminsky/").unwrap();
         assert_eq!(&res2.base.to_string(), "https://blog.janestreet.com/");
-        assert_eq!(&res2.relative, "/author/yminsky/");
+        // assert_eq!(&res2.relative, "/author/yminsky/");
         assert_eq!(&res2.get_full_url(), "https://blog.janestreet.com/author/yminsky/");
 
         // rel. without or with / is fine
