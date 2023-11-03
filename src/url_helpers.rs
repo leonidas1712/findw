@@ -212,12 +212,12 @@ pub async fn debug_url_hrefs_joined(url:&str)->anyhow::Result<()>{
             // println!("no. of children: {}", hrefs.len());
 
             let url = url::Url::parse(url).unwrap();
-            println!("URL: {}", url.to_string());
+            // println!("URL: {}", url.to_string());
             hrefs.iter().for_each(|s| {
                 let join = url.join(s);
                 match join {
                     Ok(joined_url) => {
-                        println!("joined child: {}", joined_url.to_string());
+                        println!("{}", joined_url.to_string());
                     }, 
                     Err(err) => {
                         println!("ERR: couldn't join child:{}", s);
