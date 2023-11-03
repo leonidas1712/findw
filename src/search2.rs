@@ -43,10 +43,6 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                             let page_title = info.page_title;
                             let child_hrefs = info.child_hrefs;
 
-                            // if most_recent_url.to_string().contains("wrought") {
-                            //     println!("self url, pg title: {}, {:?}", most_recent_url.to_string(),page_title);
-                            // }
-
                             if print_title {
                                 let title_print = page_title.clone().unwrap_or(String::from(consts::EMPTY_TITLE));
                                 path.goal_test_on_title(&page_title, &cloned_pattern, &title_print);
@@ -63,6 +59,7 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                                 let mut vis_hrefs:HashSet<String> = HashSet::new();
 
                                 for child in child_hrefs {
+                                    // println!("CHILD:{}", child);
                                     let get_new_parsed = most_recent_url.get_new_parsed_url(child.clone()).ok();
 
                                     // true when err on parse -> skip this child

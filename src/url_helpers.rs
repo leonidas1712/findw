@@ -120,6 +120,7 @@ impl ParsedUrl {
         let mut new_url = self.clone();
         if is_relative(&child_href) {
             new_url.relative = child_href;
+            // println!("NEW URL:{}", new_url.to_string());
             Ok(new_url)
         } else {
             parse_base_url(&child_href)
