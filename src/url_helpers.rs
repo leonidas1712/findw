@@ -182,7 +182,7 @@ pub fn debug_url(url:&str) {
 
 use super::search_helpers::Path;
 // function to print all child hrefs for a URL
-async fn debug_url_hrefs(url:&str)->anyhow::Result<()>{
+pub async fn debug_url_hrefs(url:&str)->anyhow::Result<()>{
     let path = Path::new(url)?;
     let url = path.get_most_recent_url();
     let info = url.get_info().await;
@@ -192,6 +192,38 @@ async fn debug_url_hrefs(url:&str)->anyhow::Result<()>{
             let hrefs = res.child_hrefs;
             // println!("no. of children: {}", hrefs.len());
             hrefs.iter().for_each(|s| println!("{}", s));
+
+            Ok(())
+        },
+        Err(e) => {
+            Err(e)
+        }
+    }
+}
+
+pub async fn debug_url_hrefs_joined(url:&str)->anyhow::Result<()>{
+    let path = Path::new(url)?;
+    let url_obj = path.get_most_recent_url();
+    let info = url_obj.get_info().await;
+
+    match info {
+        Ok(res) => {
+            let hrefs = res.child_hrefs;
+            // println!("no. of children: {}", hrefs.len());
+
+            let url = url::Url::parse(url).unwrap();
+            println!("URL: {}", url.to_string());
+            hrefs.iter().for_each(|s| {
+                let join = url.join(s);
+                match join {
+                    Ok(joined_url) => {
+                        println!("joined child: {}", joined_url.to_string());
+                    }, 
+                    Err(err) => {
+                        println!("ERR: couldn't join child:{}", s);
+                    }
+                }
+            });
 
             Ok(())
         },
