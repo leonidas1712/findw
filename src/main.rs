@@ -23,8 +23,6 @@ struct Args {
     pub title: bool
 }
 
-
-use url::{Url};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
