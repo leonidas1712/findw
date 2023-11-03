@@ -59,7 +59,8 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                             
                             // this check is done here instead of outside because of goal test
                             if curr_depth < depth_limit {
-                                // if child_depth == limit: sync++
+                                let mut sync_num = sync.lock().unwrap();
+
                                 for child in child_hrefs {
                                     let get_new_parsed = most_recent_url.get_new_parsed_url(child).ok();
                                     // true when err on parse -> skip this child
@@ -86,10 +87,9 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                                             // add to queue, sync++ if leaf and send was successful
                                             match tx.send(PathRcv(new_path)) {
                                                 Ok(_) => {
-                                                    if curr_depth + 1 == depth_limit {
-                                                        let mut sync_num = sync.lock().unwrap();
-                                                        *sync_num += 1;
-                                                    }
+                                                    // let mut sync_num = sync.lock().unwrap();
+                                                    *sync_num += 1;
+                                                    
                                                 },
                                                 Err(err) => {
                                                     // println!("ERROR: error sending path into queue - {}", err.to_string())
@@ -113,18 +113,14 @@ pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bo
                         }
                     }
 
-                    // reached depth_limit: sync--, then check if 0 => rx.close
-                    // why outside match: if match runs error branch below should still run
-                    if curr_depth == 0 || curr_depth == depth_limit {
-                        let mut sync_num = sync.lock().unwrap();
-                        *sync_num -= 1;
+                    // decrement and check nodes == 0 upon exit
+                    let mut sync_num = sync.lock().unwrap();
+                    *sync_num -= 1;
 
-                        // no more last level threads left: send Close msg
-                        if *sync_num == 0 {
-                            tx.send(Message::Close);
-                        }
+                    // no more last level threads left: send Close msg
+                    if *sync_num == 0 {
+                        tx.send(Message::Close);
                     }
-        
                 }); // end of tokio::spawn
             },
 

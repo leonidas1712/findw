@@ -8,16 +8,22 @@ OUTPUT_FOLDER="output"
 LINE_START="Found:" # start of a path print
 PATH_SPLIT="=>" # delimiter inside a path
 EMPTY_TITLE = "(Empty title)"
+PRINT_TITLE_SHORT = "-t"
+
+# check if -t flag there
+def check_prints_title(inp:str)->bool:
+    return PRINT_TITLE_SHORT in inp.split()
+    
 
 # contains specified pattern at the end of each path
 # no duplicate paths (same path printed twice)
 # paths should not contain cycles along them (titles)
     # unless the title is (Empty title), in which case its ok to see repetition
-def validate_path(path_num:int, path:List[str], pattern:str)->Optional[str]:
+def validate_path(path_num:int, path:List[str], pattern:str, prints_title:bool)->Optional[str]:
     # print(f'Validating path {path_num} with pattern {pattern}...')
     # print(path)
     last = path[-1]
-    if not pattern in last:
+    if prints_title and (not pattern in last):
         return f'ERROR: last title "{last}" of path {path_num} does not contain pattern "{pattern}"'
     
     path_set:set[str] = set()
@@ -37,11 +43,15 @@ def process(in_files:List[str]):
         out_file = in_file.replace(".in", ".out")
         out_file = out_file.replace(INPUT_FOLDER, OUTPUT_FOLDER)
         pattern = None
+        prints_title=False
+        
 
         try:
             # Read the pattern from the second whitespace-delimited field in the .in file
             with open(in_file, 'r') as f_in:
-                pattern = f_in.read().split()[1]
+                inp = f_in.read()
+                prints_title = check_prints_title(inp)
+                pattern = inp.split()[1]
 
             # Read out file "Found: xxx" lines (individual path prints)
             with open(out_file, 'r') as f_out:
@@ -70,7 +80,7 @@ def process(in_files:List[str]):
                 
                 seen_paths.add(path_tup)
                 
-                err = validate_path(path_num, path, pattern)
+                err = validate_path(path_num, path, pattern, prints_title)
                 if err:
                     print(err)
 
