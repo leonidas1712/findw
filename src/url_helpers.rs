@@ -23,7 +23,7 @@ impl Display for InfoResult {
 /// Get base e.g http://localhost:8000/index.html => http://localhost:8000 
 /// and relative url: (base, relative).
 /// Provides helper method for full url and parsing
-#[derive(Eq)]
+#[derive(Debug, Eq)]
 pub struct ParsedUrl {
     // https://localhost:8000/ or https://blog.janestreet.com/; Url comes from url crate
     pub base:Url, // TODO: change to use pointer (some collection in main passed down) to avoid .clone()
