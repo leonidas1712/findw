@@ -4,11 +4,10 @@ use crate::search_helpers::*;
 use Message::*;
 
 
-/// Process may not stop
+/// Process may not stop - but doesn't use any sync mechanisms
 pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();
-    // println!("Starting search with: {}\n", initial_path);
 
     // for initial MPSC send - need other tx to clone for remaining workers
     let first_tx = tx.clone();
@@ -17,9 +16,6 @@ pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->R
     tokio::spawn(async move {
         first_tx.send(PathRcv(initial_path));
     });
-
-    // sync last level threads: when it reaches 0, rx.close()
-    // let sync:Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
 
     while let Some(msg) = rx.recv().await {
         match msg {
@@ -100,19 +96,6 @@ pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->R
                             // println!("ERROR: error requesting url - {}", err.to_string());
                         }
                     }
-
-                    // reached depth_limit: sync--, then check if 0 => rx.close
-                    // why outside match: if match runs error branch below should still run
-                    // if curr_depth == 0 || curr_depth == depth_limit {
-                    //     let mut sync_num = sync.lock().unwrap();
-                    //     *sync_num -= 1;
-
-                    //     // no more last level threads left: send Close msg
-                    //     if *sync_num == 0 {
-                    //         tx.send(Message::Close);
-                    //     }
-                    // }
-        
                 });
             },
 
