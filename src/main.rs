@@ -1,5 +1,7 @@
 use findw::{search2::search2, search_without_stop::search_without_stop};
 use clap::Parser;
+use findw::search_helpers::Path;
+
 // Clap
 #[derive(Parser, Debug)]
 #[command(author, version, about)]

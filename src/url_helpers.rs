@@ -179,6 +179,27 @@ pub fn debug_url(url:&str) {
     println!("");
 }
 
+use super::search_helpers::Path;
+// function to print all child hrefs for a URL
+async fn debug_url_hrefs(url:&str)->anyhow::Result<()>{
+    let path = Path::new(url)?;
+    let url = path.get_most_recent_url();
+    let info = url.get_info().await;
+
+    match info {
+        Ok(res) => {
+            let hrefs = res.child_hrefs;
+            // println!("no. of children: {}", hrefs.len());
+            hrefs.iter().for_each(|s| println!("{}", s));
+
+            Ok(())
+        },
+        Err(e) => {
+            Err(e)
+        }
+    }
+}
+
 #[cfg(test)]
 pub mod tests {
     use crate::{url_helpers::is_relative};
