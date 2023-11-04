@@ -125,16 +125,7 @@ impl ParsedUrl {
             Err(err) => {
                 Err(anyhow!(err))
             }
-        }
-
-        // let mut new_url = self.clone();
-        // if is_relative(&child_href) {
-        //     new_url.relative = child_href;
-        //     // println!("NEW URL:{}", new_url.to_string());
-        //     Ok(new_url)
-        // } else {
-        //     parse_base_url(&child_href)
-        // }   
+        } 
     }
 }
 
@@ -154,26 +145,6 @@ pub fn parse_base_url(url:&str)->Result<ParsedUrl> {
     }
 
     Ok(ParsedUrl { base: parsed })
-
-    // let scheme = parsed.scheme(); // http or https
-    // let domain = domain.unwrap(); // localhost or blog.janestreet.com
-    // let port = parsed.port(); // 8000
-    // let relative = parsed.path();
-
-    // // make into the right string
-    // let base_url = match port {
-    //     Some(prt) => {
-    //         format!("{scheme}://{domain}:{prt}")
-    //     },
-
-    //     None => {
-    //         format!("{scheme}://{domain}")
-    //     }
-    // };
-    
-    // // parse back into Url
-    // let base_url = Url::parse(&base_url)?;
-    // Ok(ParsedUrl { base: base_url, relative: relative.to_string()})
 }
 
 /// Return true if URL is relative, else false
