@@ -14,10 +14,6 @@ struct Args {
     /// Depth limit. Should be an integer > 0
     pub depth_limit:usize,
 
-    // /// If present, runs hanging version (doesn't stop)
-    // #[arg(short)]
-    // pub no_stop:bool,
-
     /// If present, prints titles for each path instead, indicating empty titles where there are none.
     #[arg(short)]
     pub title: bool
