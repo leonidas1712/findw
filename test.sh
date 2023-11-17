@@ -1,4 +1,5 @@
 #!/bin/bash
+# Runs input(s) from input/, saves result to results/ and compares to file from output/
 
 if [ ! "$#" -gt 0 ]
 then

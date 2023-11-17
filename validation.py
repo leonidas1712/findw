@@ -1,4 +1,4 @@
-# Script to validate correctness of generated out files as per corresponding in files
+# Script to validate correctness of generated out files (in output/) as per corresponding in files
 # contains specified pattern at the end of each path
 # no duplicate paths (same path printed twice)
 # paths should not contain cycles along them (titles)
