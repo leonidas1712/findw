@@ -7,10 +7,11 @@
 from typing import List, Optional, Tuple
 import glob
 from sys import argv
+from urllib.parse import urlparse
 
 INPUT_FOLDER="input"
 OUTPUT_FOLDER="output"
-LINE_START="Found:" # start of a path print
+LINE_START="" # start of a path print
 PATH_SPLIT="=>" # delimiter inside a path
 EMPTY_TITLE = "(Empty title)"
 PRINT_TITLE_SHORT = "-t"
@@ -35,6 +36,13 @@ def validate_path(path_num:int, path:List[str], pattern:str, prints_title:bool)-
     for title in path:
         if title != EMPTY_TITLE and title in path_set:
             return f'ERROR: title "{title}" seen twice in path {path_num}: {path}'
+        
+        if not prints_title:
+            parsed=urlparse(title) # url
+            if bool(parsed.fragment):
+                return f'ERROR: URL "{title}" has fragment in path {path_num}: {path}'
+                
+            
         path_set.add(title)
 
 
@@ -60,14 +68,15 @@ def process(in_files:List[str]):
 
             # Read out file "Found: xxx" lines (individual path prints)
             with open(out_file, 'r') as f_out:
-                found_lines = [line for line in f_out if line.startswith(LINE_START)]
+                # found_lines = [line for line in f_out if line.startswith(LINE_START)]
+                found_lines = [line for line in f_out]
 
             # List[List[str]]
                 # each List[str] is one found path titles array e.g ['index.html', 'about.html']
             titles:List[List[str]] = []
             for line in found_lines:
-                actual = line.split(LINE_START)[1].strip() # everything aft Found:
-                path_titles = actual.split(PATH_SPLIT)
+                # actual = line.split(LINE_START)[1].strip() # everything aft Found:
+                path_titles = line.split(PATH_SPLIT)
                 path_titles = list(map(lambda s: s.strip(), path_titles))
                 titles.append(path_titles)
             
