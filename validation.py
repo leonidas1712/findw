@@ -1,4 +1,9 @@
 # Script to validate correctness of generated out files as per corresponding in files
+# contains specified pattern at the end of each path
+# no duplicate paths (same path printed twice)
+# paths should not contain cycles along them (titles)
+# shouldn't see the same path twice in output
+
 from typing import List, Optional, Tuple
 import glob
 from sys import argv
