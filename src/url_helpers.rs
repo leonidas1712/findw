@@ -58,9 +58,15 @@ impl Display for ParsedUrl {
 }
 
 impl ParsedUrl {
-    /// join base url with relative url to get full url
+    /// Return URL without fragment (if fragment is there) - to prevent duplicate URLs due to fragments
     pub fn get_full_url(&self)->String {
-        self.base.to_string()
+        let url = self.base.to_string();
+        if self.base.fragment().is_some() {
+            url.split("#").next().unwrap().to_string()
+        }
+        else {
+            url
+        }
     }
 
     /// request full URL -> get child hrefs + document title - to request within task

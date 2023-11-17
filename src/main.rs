@@ -1,4 +1,4 @@
-use findw::{search2::search2, search_without_stop::search_without_stop};
+use findw::{search2::search2, search_without_stop::search_without_stop, url_helpers::parse_base_url};
 use clap::Parser;
 
 // Clap
@@ -22,6 +22,6 @@ struct Args {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
-    search2(&args.url,args.pattern, args.depth_limit, args.title).await
+    search2(&args.url,args.pattern, args.depth_limit, args.title).await?;
+    Ok(())
 }
-
