@@ -1,0 +1,3 @@
+Benchmark 1: xargs ./target/release/findw < input/jane0.in
+  Time (abs ≡):         2.374 s               [User: 0.007 s, System: 0.011 s]
+ 
