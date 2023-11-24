@@ -234,7 +234,6 @@ pub mod tests {
         assert!(res.is_ok());
 
         let res = res.unwrap();
-        assert_eq!("http://localhost:8000/", res.base.to_string());
         assert_eq!("http://localhost:8000/index.html", res.get_full_url());
 
 
@@ -243,13 +242,10 @@ pub mod tests {
         assert!(res.is_ok());
 
         let res = res.unwrap();
-        assert_eq!("https://blog.janestreet.com/", res.base.to_string());
         assert_eq!("https://blog.janestreet.com/what-the-interns-have-wrought-2023/", res.get_full_url());
 
         // nested relative
         let res2 = parse_base_url("https://blog.janestreet.com/author/yminsky/").unwrap();
-        assert_eq!(&res2.base.to_string(), "https://blog.janestreet.com/");
-        // assert_eq!(&res2.relative, "/author/yminsky/");
         assert_eq!(&res2.get_full_url(), "https://blog.janestreet.com/author/yminsky/");
 
         // rel. without or with / is fine

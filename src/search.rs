@@ -7,7 +7,7 @@ use Message::*;
 // Improvements from Sep 15
 // Program should stop when all tx go out of scope, but first tx has no chance to get dropped due to clone
     // Current fix: use Arc<Mutex> to track last level nodes then call rx.close()
-pub async fn search2(url:&str, pattern:String, depth_limit:usize, print_title:bool)->Result<()> {
+pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:bool)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();    
     
