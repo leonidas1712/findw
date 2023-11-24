@@ -16,8 +16,8 @@
 
 ## Generate output to test against
 ```
-./gen_out.sh 0
-./gen_out.sh all
+./gen_out.sh 0 # generate output for 0.in
+./gen_out.sh all # for all cases (takes some time)
 ```
 
 ## Validate correctness of .out files corresponding to cases
