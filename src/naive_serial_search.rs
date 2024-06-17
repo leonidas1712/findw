@@ -1,6 +1,7 @@
 use crate::search_helpers::*;
 use anyhow::Result;
 use tokio::sync::mpsc;
+use reqwest::Client;
 use Message::*;
 
 // Naive version of the search loop that doesn't take advantage of tokio spawn
@@ -12,11 +13,13 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
 
     tx.send(PathRcv(initial_path))?;
 
+    let client = Client::new();
+
     while let Some(msg) = rx.recv().await {
         match msg {
             PathRcv(path) => {
                 let most_recent_url = path.get_most_recent_url();
-                let get_info = most_recent_url.get_info().await;
+                let get_info = most_recent_url.get_info(client.clone()).await;
 
                 match get_info {
                     Ok(info) => {

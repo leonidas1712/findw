@@ -1,5 +1,6 @@
 use crate::{consts, search_helpers::*};
 use anyhow::Result;
+use reqwest::Client;
 use std::{
     collections::HashSet,
     sync::{atomic::AtomicU32, Arc},
@@ -29,6 +30,7 @@ pub async fn search(
     // sync last level threads: when it reaches 0, rx.close()
     // let sync:Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
     let sync = Arc::new(AtomicU32::new(1));
+    let client = Client::new();
 
     while let Some(msg) = rx.recv().await {
         match msg {
@@ -40,10 +42,12 @@ pub async fn search(
                 let sync = Arc::clone(&sync); // shadow
                 let tx = tx.clone(); // shadow
 
+                let client = client.clone();
+
                 tokio::spawn(async move {
                     let most_recent_url = path.get_most_recent_url(); // most recent url added to path
                                                                       // network request -> all child hrefs, page_title (Option since may not exist)
-                    let get_info = most_recent_url.get_info().await;
+                    let get_info = most_recent_url.get_info(client).await;
                     let curr_depth = path.depth;
 
                     if let Ok(info) = get_info {

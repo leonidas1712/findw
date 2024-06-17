@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use reqwest::Client;
 use std::{
     fmt::Display,
     hash::{Hash, Hasher},
@@ -77,7 +78,7 @@ impl ParsedUrl {
     }
 
     /// request full URL -> get child hrefs + document title - to request within task
-    pub async fn get_info(&self) -> Result<InfoResult> {
+    pub async fn get_info(&self, client: Client) -> Result<InfoResult> {
         // TODO: Can't do const with runtime type - use thread_local?
         let title_selector = scraper::Selector::parse("title").unwrap();
         // classes are to filter on wikipedia useless links
@@ -85,7 +86,8 @@ impl ParsedUrl {
             scraper::Selector::parse("a:not(.interlanguage-link-target, .mw-jump-link)").unwrap();
 
         let url = self.get_full_url();
-        let html = reqwest::get(url).await?.text().await?;
+        // let html = reqwest::get(url).await?.text().await?;
+        let html = client.get(url).send().await?.text().await?;
 
         let document = scraper::Html::parse_document(&html);
 
@@ -173,7 +175,8 @@ use super::search_helpers::Path;
 pub async fn debug_url_hrefs(url: &str) -> anyhow::Result<()> {
     let path = Path::new(url)?;
     let url = path.get_most_recent_url();
-    let info = url.get_info().await;
+
+    let info = url.get_info(Client::new()).await;
 
     match info {
         Ok(res) => {
@@ -190,7 +193,7 @@ pub async fn debug_url_hrefs(url: &str) -> anyhow::Result<()> {
 pub async fn debug_url_hrefs_joined(url: &str) -> anyhow::Result<()> {
     let path = Path::new(url)?;
     let url_obj = path.get_most_recent_url();
-    let info = url_obj.get_info().await;
+    let info = url_obj.get_info(Client::new()).await;
 
     match info {
         Ok(res) => {
