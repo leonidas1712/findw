@@ -1,4 +1,4 @@
-use std::{collections::HashSet, sync::{atomic::AtomicU32, Arc, Mutex}};
+use std::{collections::HashSet, sync::{atomic::AtomicU32, Arc}};
 use anyhow::{Result};
 use tokio::sync::mpsc;
 use crate::{search_helpers::*, consts};
@@ -7,7 +7,7 @@ use Message::*;
 // Improvements from Sep 15
 // Program should stop when all tx go out of scope, but first tx has no chance to get dropped due to clone
     // Current fix: use Arc<Mutex> to track last level nodes then call rx.close()
-// Additional improvement: Replaced with Arc<Atomic> with SeqCst since it's just a counter
+// Additional improvement: Replaced mutex with Arc<Atomic> with SeqCst since it's just a counter
 pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:bool)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();    
@@ -17,7 +17,7 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
 
     // send first path (task)
     tokio::spawn(async move {
-        first_tx.send(PathRcv(initial_path));
+        drop(first_tx.send(PathRcv(initial_path)))
     });
 
     // sync last level threads: when it reaches 0, rx.close()
@@ -57,11 +57,11 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
                             // this check is done here instead of outside because of goal test
                             
                             if curr_depth < depth_limit {
+                                // MUTEX version: acquire lock
                                 // let mut sync_num = sync.lock().unwrap();
                                 let mut vis_hrefs:HashSet<String> = HashSet::new();
 
                                 for child in child_hrefs {
-                                    // println!("CHILD:{}", child);
                                     let get_new_parsed = most_recent_url.get_new_parsed_url(child.clone()).ok();
 
                                     // true when err on parse -> skip this child
@@ -96,14 +96,14 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
                                             // add to queue, sync++ if leaf and send was successful
                                             match tx.send(PathRcv(new_path)) {
                                                 Ok(_) => {
+                                                    // MUTEX version: acquire lock and increment
                                                     // let mut sync_num = sync.lock().unwrap();
                                                     // *sync_num += 1;
+
                                                     sync.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                                                     
                                                 },
-                                                Err(err) => {
-                                                    // println!("ERROR: error sending path into queue - {}", err.to_string())
-                                                }
+                                                Err(_) => ()
                                             }
                                         },
                                         // ignore if parse error on absolute
@@ -118,26 +118,24 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
                         },
                         
                         // handle error. e.g bad url
-                        Err(err) => {
-                            // println!("ERROR: error requesting url - {}", err.to_string());
-                        }
+                        Err(_) => ()
                     }
 
-                    // decrement and check nodes == 0 upon exit
+                    // MUTEX version: decrement and check nodes == 0 upon exit
                     // let mut sync_num = sync.lock().unwrap();
                     // *sync_num -= 1;
 
                     sync.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
 
 
-                    // no more last level threads left: send Close msg
+                    // MUTEX version: no more last level threads left: send Close msg
                     // if *sync_num == 0 {
                     //     tx.send(Message::Close);
                     // }
 
                     // we don't need a spinlock since only one coroutine will see 0 in the global seqcst order of events
                     if sync.load(std::sync::atomic::Ordering::SeqCst) == 0 {
-                        tx.send(Message::Close);
+                        drop(tx.send(Message::Close))
                     }
                 }); // end of tokio::spawn
             },

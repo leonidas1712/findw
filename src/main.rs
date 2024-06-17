@@ -1,4 +1,4 @@
-use findw::{search::search, naive_serial_search::{self, naive_serial_search}, url_helpers::parse_base_url};
+use findw::search::search;
 use clap::Parser;
 
 // Clap
@@ -23,7 +23,8 @@ struct Args {
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     search(&args.url,args.pattern, args.depth_limit, args.title).await?;
-    // search_without_stop(&args.url,args.pattern, args.depth_limit).await?;
+
+    // naive_serial_search(&args.url,args.pattern, args.depth_limit).await?;
 
     Ok(())
 }

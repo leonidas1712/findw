@@ -95,8 +95,6 @@ impl ParsedUrl {
             return href;
         }).collect();
 
-        // println!("LINKS: {:?}", links);
-
         // into_iter because a selector can technically match many elems, but title tag we only look at first
         let title_select = document.select(&title_selector).into_iter().next(); 
 
@@ -208,7 +206,7 @@ pub async fn debug_url_hrefs_joined(url:&str)->anyhow::Result<()>{
                     Ok(joined_url) => {
                         println!("{}", joined_url.to_string());
                     }, 
-                    Err(err) => {
+                    Err(_) => {
                         println!("ERR: couldn't join child:{}", s);
                     }
                 }
