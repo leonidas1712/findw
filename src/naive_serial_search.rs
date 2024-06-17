@@ -1,8 +1,7 @@
-use anyhow::{Result};
+use crate::search_helpers::*;
+use anyhow::Result;
 use tokio::sync::mpsc;
-use crate::{search_helpers::*};
 use Message::*;
-
 
 // Naive version of the search loop that doesn't take advantage of tokio spawn
 // Time on jane.in: 373.881s
@@ -23,7 +22,11 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
                     Ok(info) => {
                         let page_title = info.page_title;
                         let child_hrefs = info.child_hrefs;
-                        path.goal_test_on_title(&page_title, &pattern, &most_recent_url.to_string());
+                        path.goal_test_on_title(
+                            &page_title,
+                            &pattern,
+                            &most_recent_url.to_string(),
+                        );
 
                         if path.depth < depth_limit {
                             for child in child_hrefs {
@@ -32,7 +35,8 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
                                     continue;
                                 }
 
-                                let new_path = path.add_info(new_url, Some(most_recent_url.to_string()));
+                                let new_path =
+                                    path.add_info(new_url, Some(most_recent_url.to_string()));
                                 tx.send(PathRcv(new_path))?;
                             }
                         }
@@ -40,20 +44,18 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
                         if path.depth + 1 == depth_limit {
                             rx.close();
                         }
-                    },
+                    }
                     Err(err) => {
                         eprintln!("ERROR: error requesting url - {}", err);
                     }
                 }
-            },
-            Close => rx.close()
-
+            }
+            Close => rx.close(),
         }
     }
 
     Ok(())
 }
-
 
 // Process may not stop - but doesn't use any sync mechanisms
 // pub async fn search_without_stop(url:&str, pattern:String, depth_limit:usize)->Result<()> {
@@ -77,7 +79,7 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
 //                 let cloned_pattern = pattern.clone();
 //                 // let sync = Arc::clone(&sync); // shadow
 //                 let tx = tx.clone(); // shadow
-        
+
 //                 tokio::spawn(async move {
 
 //                     let most_recent_url = path.get_most_recent_url(); // most recent url added to path
@@ -86,15 +88,14 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
 //                     let get_info = most_recent_url.get_info().await;
 //                     let curr_depth = path.depth;
 
-        
 //                     match get_info {
 //                         Ok(info) => {
 //                             let page_title = info.page_title;
 //                             let child_hrefs = info.child_hrefs;
-        
+
 //                            // goal test, print path out if ok
 //                            path.goal_test_on_title(&page_title, &cloned_pattern, &most_recent_url.to_string());
-                            
+
 //                             // this check is done here instead of outside because of goal test
 //                             if curr_depth < depth_limit {
 //                                 // if child_depth == limit: sync++
@@ -109,7 +110,7 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
 //                                     if is_vis {
 //                                         continue;
 //                                     }
-                                    
+
 //                                     // make a new path and add to queue, increase sync for leaf (depth == limit)
 //                                     match get_new_parsed {
 //                                         Some(url) => {
@@ -137,11 +138,10 @@ pub async fn naive_serial_search(url: &str, pattern: String, depth_limit: usize)
 
 //                                 }
 //                             }
-                            
-        
+
 //                             // done spawning
 //                         },
-                        
+
 //                         // handle error. e.g bad url
 //                         Err(err) => {
 //                             // println!("ERROR: error requesting url - {}", err.to_string());
