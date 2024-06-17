@@ -1,0 +1,1 @@
+Benchmark 1: xargs ./target/release/findw < input/guide.in

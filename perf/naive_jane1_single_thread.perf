@@ -1,0 +1,3 @@
+Generating ./perf/jane.perf..
+Benchmark 1: xargs ./target/release/findw < input/jane.in
+  Time (abs ≡):        373.881 s               [User: 0.249 s, System: 0.122 s]

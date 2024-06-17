@@ -1,4 +1,4 @@
-use findw::{search::search, search_without_stop::search_without_stop, url_helpers::parse_base_url};
+use findw::{search::search, naive_serial_search::{self, naive_serial_search}, url_helpers::parse_base_url};
 use clap::Parser;
 
 // Clap
@@ -19,9 +19,11 @@ struct Args {
     pub title: bool
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread")]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     search(&args.url,args.pattern, args.depth_limit, args.title).await?;
+    // search_without_stop(&args.url,args.pattern, args.depth_limit).await?;
+
     Ok(())
 }
