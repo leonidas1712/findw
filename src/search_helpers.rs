@@ -112,7 +112,7 @@ impl Display for Path {
             joined_arr
         };
 
-        let set_str = if set_str.is_empty(){
+        let set_str = if set_str.is_empty() {
             String::from("{}")
         } else {
             format!("[{}]", set_str.join(", "))
@@ -121,10 +121,7 @@ impl Display for Path {
         write!(
             f,
             "(depth: {}, path: {}, vis:{}, latest_url:{})",
-            self.depth,
-            joined_arr,
-            set_str,
-            self.latest_url
+            self.depth, joined_arr, set_str, self.latest_url
         )
     }
 }
