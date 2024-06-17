@@ -1,4 +1,4 @@
-use std::{sync::{Arc,Mutex}, collections::HashSet};
+use std::{collections::HashSet, sync::{atomic::AtomicU32, Arc, Mutex}};
 use anyhow::{Result};
 use tokio::sync::mpsc;
 use crate::{search_helpers::*, consts};
@@ -7,6 +7,7 @@ use Message::*;
 // Improvements from Sep 15
 // Program should stop when all tx go out of scope, but first tx has no chance to get dropped due to clone
     // Current fix: use Arc<Mutex> to track last level nodes then call rx.close()
+// Additional improvement: Replaced with Arc<Atomic> with SeqCst since it's just a counter
 pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:bool)->Result<()> {
     let initial_path = Path::new(url)?;
     let (tx, mut rx) = mpsc::unbounded_channel::<Message>();    
@@ -20,7 +21,8 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
     });
 
     // sync last level threads: when it reaches 0, rx.close()
-    let sync:Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
+    // let sync:Arc<Mutex<usize>> = Arc::new(Mutex::new(1));
+    let sync = Arc::new(AtomicU32::new(1));
 
     while let Some(msg) = rx.recv().await {
         match msg {
@@ -55,7 +57,7 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
                             // this check is done here instead of outside because of goal test
                             
                             if curr_depth < depth_limit {
-                                let mut sync_num = sync.lock().unwrap();
+                                // let mut sync_num = sync.lock().unwrap();
                                 let mut vis_hrefs:HashSet<String> = HashSet::new();
 
                                 for child in child_hrefs {
@@ -95,7 +97,8 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
                                             match tx.send(PathRcv(new_path)) {
                                                 Ok(_) => {
                                                     // let mut sync_num = sync.lock().unwrap();
-                                                    *sync_num += 1;
+                                                    // *sync_num += 1;
+                                                    sync.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
                                                     
                                                 },
                                                 Err(err) => {
@@ -121,11 +124,19 @@ pub async fn search(url:&str, pattern:String, depth_limit:usize, print_title:boo
                     }
 
                     // decrement and check nodes == 0 upon exit
-                    let mut sync_num = sync.lock().unwrap();
-                    *sync_num -= 1;
+                    // let mut sync_num = sync.lock().unwrap();
+                    // *sync_num -= 1;
+
+                    sync.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+
 
                     // no more last level threads left: send Close msg
-                    if *sync_num == 0 {
+                    // if *sync_num == 0 {
+                    //     tx.send(Message::Close);
+                    // }
+
+                    // we don't need a spinlock since only one coroutine will see 0 in the global seqcst order of events
+                    if sync.load(std::sync::atomic::Ordering::SeqCst) == 0 {
                         tx.send(Message::Close);
                     }
                 }); // end of tokio::spawn
