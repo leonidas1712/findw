@@ -123,17 +123,15 @@ pub async fn search(
                     // let mut sync_num = sync.lock().unwrap();
                     // *sync_num -= 1;
 
-                    sync.fetch_sub(1, std::sync::atomic::Ordering::SeqCst);
+                    // Use fetch_sub since if we load again there will be a race cond.
+                    if sync.fetch_sub(1, std::sync::atomic::Ordering::SeqCst) == 1 {
+                        drop(tx.send(Message::Close))
+                    }
 
                     // MUTEX version: no more last level threads left: send Close msg
                     // if *sync_num == 0 {
                     //     tx.send(Message::Close);
                     // }
-
-                    // we don't need a spinlock since only one coroutine will see 0 in the global seqcst order of events
-                    if sync.load(std::sync::atomic::Ordering::SeqCst) == 0 {
-                        drop(tx.send(Message::Close))
-                    }
                 }); // end of tokio::spawn
             }
 
